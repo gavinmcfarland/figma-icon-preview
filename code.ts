@@ -7,6 +7,10 @@
 
 // This shows the HTML page in "ui.html".
 
+function clone(val) {
+  return JSON.parse(JSON.stringify(val))
+}
+
 const exportSettings = {
   format: "PNG",
   constraint: {
@@ -15,46 +19,49 @@ const exportSettings = {
   }
 }
 
-async function selectIcon() {
-  var selection = figma.currentPage.selection
+var targetID
 
-  var imageBytes = await selection[0].exportAsync(exportSettings)
+async function getImage(refresh?) {
 
-  figma.ui.postMessage(imageBytes)
+
+
+  var target
+
+  if (refresh) {
+    target = figma.currentPage.findOne(n => n.id === targetID)
+  } else {
+    target = figma.currentPage.selection[0]
+  }
+
+  if (target) {
+    if (target.type === "FRAME" || target.type === "GROUP" || target.type === "COMPONENT" || target.type === "INSTANCE") {
+
+      if (!refresh) {
+        targetID = clone(figma.currentPage.selection[0]).id
+      }
+
+      var imageBytes = await target.exportAsync(exportSettings)
+
+      figma.ui.postMessage(imageBytes)
+    }
+  }
+
+
 
 }
 
-
 figma.showUI(__html__);
 
-selectIcon()
+getImage()
 
-// Calls to "parent.postMessage" from within the HTML page will trigger this
-// callback. The callback will be passed the "pluginMessage" property of the
-// posted message.
+figma.on("selectionchange", () => {
+  getImage()
+})
+
 figma.ui.onmessage = msg => {
-  // One way of distinguishing between different types of messages sent from
-  // your HTML page is to use an object with a "type" property like this.
 
-
-  if (msg.type === 'create-rectangles') {
-    figma.ui.postMessage("hello")
-
-
-
-    const nodes: SceneNode[] = [];
-    for (let i = 0; i < msg.count; i++) {
-      const rect = figma.createRectangle();
-      rect.x = i * 150;
-      rect.fills = [{ type: 'SOLID', color: { r: 1, g: 0.5, b: 0 } }];
-      figma.currentPage.appendChild(rect);
-      nodes.push(rect);
-    }
-    figma.currentPage.selection = nodes;
-    figma.viewport.scrollAndZoomIntoView(nodes);
+  if (msg.type === 'refresh') {
+    getImage(true)
   }
 
-  // Make sure to close the plugin when you're done. Otherwise the plugin will
-  // keep running, which shows the cancel button at the bottom of the screen.
-  figma.closePlugin();
 };
