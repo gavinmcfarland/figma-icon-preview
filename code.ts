@@ -7,20 +7,18 @@
 
 // This shows the HTML page in "ui.html".
 
+const exportSettings = {
+  format: "PNG",
+  constraint: {
+    type: "SCALE",
+    value: 8
+  }
+}
+
 async function selectIcon() {
   var selection = figma.currentPage.selection
 
-  var imageBytes = await selection[0].exportAsync()
-
-
-
-  figma.clientStorage.setAsync("image", imageBytes)
-
-  async function getImage() {
-    return await figma.clientStorage.getAsync("image")
-  }
-
-
+  var imageBytes = await selection[0].exportAsync(exportSettings)
 
   figma.ui.postMessage(imageBytes)
 
