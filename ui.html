@@ -3,6 +3,7 @@
 <div id="canvasPlaceholder2"></div>
 
 <button id="refresh">Refresh</button>
+<button id="select">Select</button>
 
 <script>
 
@@ -41,17 +42,15 @@ document.getElementById('refresh').onclick = () => {
   parent.postMessage({ pluginMessage: { type: 'refresh' } }, '*')
 }
 
+document.getElementById('select').onclick = () => {
+  parent.postMessage({ pluginMessage: { type: 'select' } }, '*')
+}
+
 
   window.onmessage = async (event) => {
     const bytes = event.data.pluginMessage
     const imageData = await decode(canvas, ctx, bytes)
     const imageData2 = await decode(canvas2, ctx2, bytes, 4)
   }
-
-
-
-document.getElementById('cancel').onclick = () => {
-  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
-}
 
 </script>

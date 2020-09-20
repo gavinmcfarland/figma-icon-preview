@@ -11,6 +11,21 @@ function clone(val) {
   return JSON.parse(JSON.stringify(val))
 }
 
+function debounce(func, wait, immediate) {
+  var timeout;
+  return function () {
+    var context = this, args = arguments;
+    var later = function () {
+      timeout = null;
+      if (!immediate) func.apply(context, args);
+    };
+    var callNow = immediate && !timeout;
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+    if (callNow) func.apply(context, args);
+  };
+};
+
 const exportSettings = {
   format: "PNG",
   constraint: {
@@ -19,16 +34,16 @@ const exportSettings = {
   }
 }
 
-var targetID
+var lastSelectedNode
+
+var imageBytes
 
 async function getImage(refresh?) {
-
-
 
   var target
 
   if (refresh) {
-    target = figma.currentPage.findOne(n => n.id === targetID)
+    target = lastSelectedNode
   } else {
     target = figma.currentPage.selection[0]
   }
@@ -37,12 +52,10 @@ async function getImage(refresh?) {
     if (target.type === "FRAME" || target.type === "GROUP" || target.type === "COMPONENT" || target.type === "INSTANCE") {
 
       if (!refresh) {
-        targetID = clone(figma.currentPage.selection[0]).id
+        lastSelectedNode = figma.currentPage.selection[0]
       }
 
-      var imageBytes = await target.exportAsync(exportSettings)
-
-      figma.ui.postMessage(imageBytes)
+      figma.ui.postMessage(await target.exportAsync(exportSettings))
     }
   }
 
@@ -51,6 +64,14 @@ async function getImage(refresh?) {
 }
 
 figma.showUI(__html__);
+
+
+
+setInterval(() => {
+
+  getImage(true)
+
+}, 250)
 
 getImage()
 
@@ -62,6 +83,10 @@ figma.ui.onmessage = msg => {
 
   if (msg.type === 'refresh') {
     getImage(true)
+  }
+
+  if (msg.type === 'select') {
+    getImage()
   }
 
 };
