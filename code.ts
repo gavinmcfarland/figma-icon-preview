@@ -1,12 +1,3 @@
-// This plugin will open a window to prompt the user to enter a number, and
-// it will then create that many rectangles on the screen.
-
-// This file holds the main code for the plugins. It has access to the *document*.
-// You can access browser APIs in the <script> tag inside "ui.html" which has a
-// full browser environment (see documentation).
-
-// This shows the HTML page in "ui.html".
-
 function clone(val) {
   return JSON.parse(JSON.stringify(val))
 }
@@ -30,9 +21,24 @@ const exportSettings = {
   format: "PNG",
   constraint: {
     type: "SCALE",
-    value: 8
+    value: 2
   }
 }
+
+var iconExports = [
+  {
+    size: 24
+  },
+  {
+    size: 32
+  },
+  {
+    size: 64
+  },
+  {
+    size: 96
+  }
+]
 
 var lastSelectedNode
 
@@ -50,12 +56,28 @@ async function getImage(refresh?) {
 
   if (target) {
     if (target.type === "FRAME" || target.type === "GROUP" || target.type === "COMPONENT" || target.type === "INSTANCE") {
+      if (target.height <= 256 || target.width <= 256) {
+        if (!refresh) {
+          lastSelectedNode = figma.currentPage.selection[0]
+        }
 
-      if (!refresh) {
-        lastSelectedNode = figma.currentPage.selection[0]
+        var images = []
+
+        for (let i = 0; i < iconExports.length; i++) {
+          var temp = target.clone()
+          var currentSize = target.width
+          var desiredSize = iconExports[i].size
+          var scale = desiredSize / currentSize
+
+          temp.rescale(scale)
+          var image = await temp.exportAsync(exportSettings)
+          images.push(image)
+          temp.remove()
+        }
+
+        figma.ui.postMessage(images)
+
       }
-
-      figma.ui.postMessage(await target.exportAsync(exportSettings))
     }
   }
 
@@ -65,28 +87,33 @@ async function getImage(refresh?) {
 
 figma.showUI(__html__);
 
+figma.ui.resize(480, (256 - 32))
 
-
-setInterval(() => {
-
-  getImage(true)
-
-}, 250)
-
+// Show preview when plugin runs
 getImage()
 
+// Update live preview
+// setInterval(() => {
+//   getImage(true)
+// }, 250)
+
+// Change preview on selection
 figma.on("selectionchange", () => {
   getImage()
 })
 
 figma.ui.onmessage = msg => {
 
+  // Manual refresh
   if (msg.type === 'refresh') {
     getImage(true)
   }
 
+  // Preview selected icon
   if (msg.type === 'select') {
-    getImage()
+    figma.once("selectionchange", () => {
+      getImage()
+    })
   }
 
 };

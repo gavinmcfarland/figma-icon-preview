@@ -9,6 +9,11 @@
   "author": "",
   "license": "",
   "devDependencies": {
-    "@figma/plugin-typings": "^1.16.1"
+    "@figma/plugin-typings": "^1.16.1",
+    "@types/node": "^14.11.1",
+    "lodash.clonedeep": "^4.5.0"
+  },
+  "dependencies": {
+    "figma-plugin-ds": "^0.1.8"
   }
 }
