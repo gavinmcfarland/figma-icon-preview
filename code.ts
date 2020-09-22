@@ -27,18 +27,40 @@ const exportSettings = {
 
 var iconExports = [
   {
+    size: 16
+  },
+  {
     size: 24
   },
   {
     size: 32
   },
   {
+    size: 48
+  },
+  {
     size: 64
   },
   {
+    size: 72
+  },
+  {
     size: 96
+  },
+  {
+    size: 112
+  },
+  {
+    size: 128
   }
+
 ]
+
+var message: any = {
+  thumbnail: "",
+  icons: [],
+  name: ""
+}
 
 var lastSelectedNode
 
@@ -61,25 +83,45 @@ async function getImage(refresh?) {
           lastSelectedNode = figma.currentPage.selection[0]
         }
 
-        var images = []
+        var currentSize = target.width
+        var scale2 = 16 / currentSize
+        var thing = target.clone()
+        thing.rescale(scale2)
+        message.thumbnail = await thing.exportAsync(exportSettings)
+        thing.remove()
+
+        var icons = []
 
         for (let i = 0; i < iconExports.length; i++) {
+          var icon = {
+            image: "",
+            size: iconExports[i].size
+          }
           var temp = target.clone()
-          var currentSize = target.width
           var desiredSize = iconExports[i].size
           var scale = desiredSize / currentSize
+          // var reversescale = currentSize / desiredSize
 
           temp.rescale(scale)
-          var image = await temp.exportAsync(exportSettings)
-          images.push(image)
+          icon.image = await temp.exportAsync(exportSettings)
+          // target.rescale(reversescale)
+          icons.push(icon)
           temp.remove()
         }
 
-        figma.ui.postMessage(images)
+        message.icons = icons
+
+        message.name = target.name
+
+        figma.ui.postMessage(message)
 
       }
     }
   }
+  // else {
+  //   message = false
+  //   figma.ui.postMessage(message)
+  // }
 
 
 
@@ -87,20 +129,20 @@ async function getImage(refresh?) {
 
 figma.showUI(__html__);
 
-figma.ui.resize(480, (256 - 32))
+figma.ui.resize(176 * 3, (176 * 2 + 48))
 
 // Show preview when plugin runs
 getImage()
 
 // Update live preview
-// setInterval(() => {
-//   getImage(true)
-// }, 250)
+setInterval(() => {
+  getImage(true)
+}, 1000)
 
 // Change preview on selection
-figma.on("selectionchange", () => {
-  getImage()
-})
+// figma.on("selectionchange", () => {
+//   getImage()
+// })
 
 figma.ui.onmessage = msg => {
 
@@ -111,9 +153,17 @@ figma.ui.onmessage = msg => {
 
   // Preview selected icon
   if (msg.type === 'select') {
+
     figma.once("selectionchange", () => {
-      getImage()
+      if (figma.currentPage.selection.length > 0) {
+
+        getImage()
+
+      }
     })
+
+
+
   }
 
 };

@@ -1011,6 +1011,10 @@ body {
   background-image: url("data:image/svg+xml;charset=utf8,%3Csvg fill='none' height='32' width='32' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000'%3E%3Cpath clip-rule='evenodd' d='M21.25 17.393a1.75 1.75 0 001.75 1.75V20H9v-.857a1.75 1.75 0 001.75-1.75V14c0-3.314 2.35-6 5.25-6s5.25 2.686 5.25 6zm-1-3.393v3.393c0 .6.192 1.155.518 1.607h-9.536a2.738 2.738 0 00.518-1.607V14c0-2.891 2.024-5 4.25-5s4.25 2.109 4.25 5z' fill-rule='evenodd'/%3E%3Cpath d='M16 23a2 2 0 01-2-2h-1a3 3 0 106 0h-1a2 2 0 01-2 2z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
+.icon--select {
+  background-image: url("data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14 23L11.5 10L22.5 16.5L17 18L14 23Z' stroke='black' stroke-linecap='square'/%3E%3C/svg%3E%0A");
+}
+
 .icon--angle {
   background-image: url("data:image/svg+xml;charset=utf8,%3Csvg fill='none' height='32' width='32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath clip-rule='evenodd' d='M12 12v8h8v-1h-3a4 4 0 00-4-4v-3zm1 4v3h3a3 3 0 00-3-3z' fill='%23000' fill-rule='evenodd'/%3E%3C/svg%3E");
 }
@@ -1348,10 +1352,11 @@ body {
 }
 
 .icon-button {
+  background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: default;
   width: var(--size-medium);
   height: var(--size-medium);
   border-radius: var(--border-radius-small);
@@ -2049,26 +2054,32 @@ select.select-menu {
 
 .wrapper {
   overflow: hidden;
+  margin-bottom: 48px;
+  border-bottom: 1px solid #E5E5E5;
+  
 }
 
 :root {
-  --icon-width: 160px;
+  --icon-width: 176px;
 }
 
 #canvasPlaceholder {
-  height: var(--icon-width);
+
+  margin-bottom: -1px;
   margin-right: -1px;
-  overflow: hidden;
-  border-bottom: 1px solid #E5E5E5;
+  overflow-y: scroll;
+  overflow-x: hidden;
   display: flex;
   flex-wrap: wrap;
+  
 }
 
 #canvasPlaceholder > * {
+  border-bottom: 1px solid #E5E5E5;
   border-right: 1px solid #E5E5E5;
   box-sizing: border-box;
-  flex-grow: 1;
-  width: var(--icon-width);
+  flex-grow: 0;
+  width: calc(100% / 3);
   height: var(--icon-width);
   display: grid;
    place-items: center;
@@ -2077,38 +2088,102 @@ select.select-menu {
 
 #canvasPlaceholder > * > p {
   position: absolute;
-  bottom: 16px;
+  bottom: 12px;
+  left: 12px;
   margin: 0;
+}
+
+.black3 {
+  color: var(--black3);
+}
+
+html {
+  position: relative;
+  height: 100%;
+  overflow-y: scroll;
+}
+
+#toolbar {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  border-top: 1px solid #E5E5E5;
+  background-color: white;
+}
+
+.preview {
+  /* display: none; */
+}
+
+.selectIcon {
+  display: none;
+  place-items: center;
+}
+
+.hide {
+  display: none;
+}
+
+.show {
+  display: grid;
 }
 
 </style>
 
-
-<div class="wrapper">
-<div id="canvasPlaceholder">
-  <div>
-    <canvas></canvas>
-    <p>24</p>
-  </div>
-  <div>
-    <canvas></canvas>
-    <p>32</p>
-  </div>
-  <div>
-    <canvas></canvas>
-    <p>64</p>
-  </div>
-  <div>
-    <canvas></canvas>
-    <p>96</p>
-  </div>
-</div>
+<div id="selectIcon" class="selectIcon">
+  <p>Select a frame or group on the canvas</p>
+  <button class="button button--primary">Select</button>
 </div>
 
-<div class="m-xsmall flex">
-<button id="select" class="button button--primary mr-xsmall">Select</button>
-<button id="refresh" class="button button--secondary">Refresh</button>
-</div>
+<div id="preview" class="preview">
+  <div class="wrapper">
+    <div id="canvasPlaceholder">
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+      <div>
+        <canvas></canvas>
+        <p class="type--small black3"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toolbar" class="p-xxsmall flex" style="justify-content: space-between; z-index: 100;">
+    
+    <div style="flex-grow: 1; display: flex;"><button id="select" class="icon-button mr-xxxsmall" style="padding: 0;"><div id="thumbnail"><canvas></canvas></div></button><p style="margin-top: 0; margin-bottom: 0; align-self: center;" id="iconName" class="type--small mr-xsmall"></p></div>
+
+    <button id="refresh" class="button button--primary">Refresh</button>
+  </div>
+<div>
 
 <script>
 
@@ -2143,25 +2218,70 @@ document.getElementById('select').onclick = () => {
 
 
   window.onmessage = async (event) => {
-    const images = event.data.pluginMessage
-    const canvasPlaceholder = document.querySelector('#canvasPlaceholder');
+    const message = event.data.pluginMessage
 
+    const preview = document.querySelector('#preview');
 
-    for (let i = 0; i < images.length; i++) {
+    
 
-      const canvas = document.createElement('canvas')
+    const selectIcon = document.querySelector('#selectIcon');
 
-      const ctx = canvas.getContext('2d')
+    if (message) {
+
+      selectIcon.classList.add("hide")
+      preview.classList.add("show")
+
+      const thumbnail = document.querySelector('#thumbnail');
       
+      const icons = message.icons
 
-      var bytes = images[i]      
+      const iconName = document.querySelector('#iconName');
 
-      await decode(canvas, ctx, bytes)
+      iconName.innerHTML = message.name
 
-      canvasPlaceholder.children[i].appendChild(canvas)
-      canvasPlaceholder.children[i].children[0].parentNode.replaceChild(canvas, canvasPlaceholder.children[i].children[0]);
-      
+
+
+
+      const canvas2 = document.createElement('canvas')
+
+      const ctx2 = canvas2.getContext('2d')
+
+      await decode(canvas2, ctx2, message.thumbnail)
+
+      thumbnail.appendChild(canvas2)
+
+      thumbnail.children[0].parentNode.replaceChild(canvas2, thumbnail.children[0]);
+
+
+      const canvasPlaceholder = document.querySelector('#canvasPlaceholder');
+
+
+      for (let i = 0; i < icons.length; i++) {
+
+        if (canvasPlaceholder.children[i]) {
+          const canvas = document.createElement('canvas')
+
+          const ctx = canvas.getContext('2d')
+          
+
+          var bytes = icons[i].image
+
+          await decode(canvas, ctx, bytes)
+
+          
+
+          canvasPlaceholder.children[i].appendChild(canvas)
+          canvasPlaceholder.children[i].children[0].parentNode.replaceChild(canvas, canvasPlaceholder.children[i].children[0]);
+          canvasPlaceholder.children[i].children[1].innerHTML = icons[i].size
+        }
+
+      }
     }
+    else {
+      preview.classList.add("hide")
+      selectIcon.classList.add("show")
+    }
+    
 
   }
 
