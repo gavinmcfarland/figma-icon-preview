@@ -7,26 +7,90 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-function clone(val) {
-    return JSON.parse(JSON.stringify(val));
-}
-function debounce(func, wait, immediate) {
-    var timeout;
-    return function () {
-        var context = this, args = arguments;
-        var later = function () {
-            timeout = null;
-            if (!immediate)
-                func.apply(context, args);
-        };
-        var callNow = immediate && !timeout;
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        if (callNow)
-            func.apply(context, args);
-    };
-}
-;
+var thumbnailSettings = [
+    {
+        size: 16,
+        group: "General"
+    },
+    {
+        size: 24,
+        group: "General"
+    },
+    {
+        size: 32,
+        group: "General"
+    },
+    {
+        size: 48,
+        group: "General"
+    },
+    {
+        size: 64,
+        group: "General"
+    },
+    {
+        size: 96,
+        group: "General"
+    },
+    {
+        size: 128,
+        group: "General"
+    },
+    {
+        size: 20,
+        group: "iOS",
+        label: "Notification"
+    },
+    {
+        size: 29,
+        group: "iOS",
+        label: "Settings"
+    },
+    {
+        size: 40,
+        group: "iOS",
+        label: "Spotlight"
+    },
+    {
+        size: 60,
+        group: "iOS",
+        label: "iPhone"
+    },
+    {
+        size: 76,
+        group: "iOS",
+        label: "iPad"
+    },
+    {
+        size: 83.5,
+        group: "iOS",
+        label: "iPad Pro"
+    },
+    {
+        size: 16,
+        group: "Android",
+        label: "Small Contextual"
+    },
+    {
+        size: 22,
+        group: "Android",
+        label: "Notification"
+    },
+    {
+        size: 24,
+        group: "Android",
+        label: "System"
+    },
+    {
+        size: 48,
+        group: "Android",
+        label: "Product"
+    }
+];
+const ui = {
+    width: 176 * 3,
+    height: (176 * 2 + 48)
+};
 const exportSettings = {
     format: "PNG",
     constraint: {
@@ -34,113 +98,122 @@ const exportSettings = {
         value: 2
     }
 };
-var iconExports = [
-    {
-        size: 16
-    },
-    {
-        size: 24
-    },
-    {
-        size: 32
-    },
-    {
-        size: 48
-    },
-    {
-        size: 64
-    },
-    {
-        size: 72
-    },
-    {
-        size: 96
-    },
-    {
-        size: 112
-    },
-    {
-        size: 128
-    }
-];
-var message = {
-    thumbnail: "",
-    icons: [],
-    name: ""
-};
-var lastSelectedNode;
-var imageBytes;
-function getImage(refresh) {
+function nodeIsBox(node) {
+    return node.type === "FRAME" || node.type === "GROUP" || node.type === "COMPONENT" || node.type === "INSTANCE";
+}
+// Check size to avoid exporting too large a preview
+function nodeIsSmall(node) {
+    return node.height <= 256 && node.width <= 256;
+}
+var message, lastSelectedNode, imageBytes;
+function generateThumbnail(node, currentSize, desiredSize) {
     return __awaiter(this, void 0, void 0, function* () {
-        var target;
-        if (refresh) {
-            target = lastSelectedNode;
-        }
-        else {
-            target = figma.currentPage.selection[0];
-        }
-        if (target) {
-            if (target.type === "FRAME" || target.type === "GROUP" || target.type === "COMPONENT" || target.type === "INSTANCE") {
-                if (target.height <= 256 || target.width <= 256) {
-                    if (!refresh) {
-                        lastSelectedNode = figma.currentPage.selection[0];
-                    }
-                    var currentSize = target.width;
-                    var scale2 = 16 / currentSize;
-                    var thing = target.clone();
-                    thing.rescale(scale2);
-                    message.thumbnail = yield thing.exportAsync(exportSettings);
-                    thing.remove();
-                    var icons = [];
-                    for (let i = 0; i < iconExports.length; i++) {
-                        var icon = {
-                            image: "",
-                            size: iconExports[i].size
-                        };
-                        var temp = target.clone();
-                        var desiredSize = iconExports[i].size;
-                        var scale = desiredSize / currentSize;
-                        // var reversescale = currentSize / desiredSize
-                        temp.rescale(scale);
-                        icon.image = yield temp.exportAsync(exportSettings);
-                        // target.rescale(reversescale)
-                        icons.push(icon);
-                        temp.remove();
-                    }
-                    message.icons = icons;
-                    message.name = target.name;
-                    figma.ui.postMessage(message);
-                }
-            }
-        }
-        // else {
-        //   message = false
-        //   figma.ui.postMessage(message)
-        // }
+        var scale = desiredSize / currentSize;
+        var temp = node.clone();
+        temp.rescale(scale);
+        var image = yield temp.exportAsync(exportSettings);
+        temp.remove();
+        return image;
     });
 }
-figma.showUI(__html__);
-figma.ui.resize(176 * 3, (176 * 2 + 48));
+function setPreview(selection, refresh) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var currentNode = selection[0];
+        if (refresh) {
+            currentNode = lastSelectedNode;
+            if (lastSelectedNode.removed) {
+                figma.notify("Node was removed");
+            }
+        }
+        else {
+            currentNode = figma.currentPage.selection[0];
+        }
+        if (currentNode) {
+            // Save current node for when preview is refeshed
+            if (!refresh) {
+                lastSelectedNode = figma.currentPage.selection[0];
+            }
+            message = {
+                thumbnail: {},
+                thumbnails: [],
+                name: ""
+            };
+            // Generate thumbnail for current frame
+            message.thumbnail.current = yield generateThumbnail(currentNode, currentNode.width, 16);
+            // Generate thumbnail previews
+            for (let i = 0; i < thumbnailSettings.length; i++) {
+                message.thumbnails.push({});
+                message.thumbnails[i].image = "";
+                message.thumbnails[i].size = thumbnailSettings[i].size;
+                message.thumbnails[i].group = thumbnailSettings[i].group;
+                message.thumbnails[i].label = thumbnailSettings[i].label;
+                message.thumbnails[i].image = yield generateThumbnail(currentNode, currentNode.width, thumbnailSettings[i].size);
+            }
+            // message.thumbnails = thumbnails
+            message.name = currentNode.name;
+            figma.ui.postMessage(message);
+        }
+    });
+}
 // Show preview when plugin runs
-getImage();
-// Update live preview
-setInterval(() => {
-    getImage(true);
-}, 1000);
-// Change preview on selection
-// figma.on("selectionchange", () => {
-//   getImage()
-// })
+// if (figma.command === "selected") {
+if (figma.currentPage.selection.length === 1) {
+    if (nodeIsBox(figma.currentPage.selection[0])) {
+        if (nodeIsSmall(figma.currentPage.selection[0])) {
+            figma.showUI(__html__);
+            figma.ui.resize(ui.width, ui.height);
+            setPreview(figma.currentPage.selection);
+        }
+        else {
+            figma.notify("Frame must be smaller than 256px");
+            figma.closePlugin();
+        }
+    }
+    else {
+        figma.notify("Selection must be a frame or group to preview");
+        figma.closePlugin();
+    }
+}
+else if (figma.currentPage.selection.length === 0) {
+    figma.showUI(__html__);
+    figma.ui.resize(ui.width, ui.height);
+    setPreview(figma.currentPage.selection);
+    message = false;
+    figma.ui.postMessage(message);
+}
+else {
+    figma.notify("Please select one group or frame");
+    figma.closePlugin();
+}
+// Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
+// setInterval(() => {
+//   setPreview(true)
+// }, 1000)
+// }
 figma.ui.onmessage = msg => {
     // Manual refresh
     if (msg.type === 'refresh') {
-        getImage(true);
+        setPreview(figma.currentPage.selection, true);
     }
-    // Preview selected icon
-    if (msg.type === 'select') {
+    // Isnpect icon
+    if (msg.type === 'inspect') {
         figma.once("selectionchange", () => {
-            if (figma.currentPage.selection.length > 0) {
-                getImage();
+            if (figma.currentPage.selection.length === 1) {
+                if (nodeIsBox(figma.currentPage.selection[0])) {
+                    if (nodeIsSmall(figma.currentPage.selection[0])) {
+                        console.log(figma.currentPage.selection[0].height);
+                        setPreview(figma.currentPage.selection[0]);
+                    }
+                    else {
+                        figma.notify("Frame must be smaller than 256px");
+                    }
+                }
+                else {
+                    figma.notify("Selection must be a frame or group to preview");
+                }
+            }
+            else {
+                figma.notify("Please select one group or frame");
             }
         });
     }

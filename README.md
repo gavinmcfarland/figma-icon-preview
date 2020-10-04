@@ -1,40 +1,23 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+# Icon Preview
 
-  https://www.figma.com/plugin-docs/setup/
+Preview icons at different sizes for web, iOS and Android.
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+## Previewing an icon
 
-  https://nodejs.org/en/download/
+1. Select an icon and run the plugin (must be a frame or group).
+2. You will see a list of icons at different sizes for different platforms. Scroll to view more.
 
-Next, install TypeScript using the command:
+## Refreshing changes
 
-  npm install -g typescript
+1. Once you've edited your icon just select "Refresh" to preview your changes.
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
+## Selecting a new icon
 
-  npm install --save-dev @figma/plugin-typings
+There are two ways to do this:
+1. Either select a new frame or group and run the plugin again.
+2. Or select the current icon in the bottom right of the plugin window and then inspect another icon.
 
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
+## Things to note
 
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
-
-For more information, visit https://www.typescriptlang.org/
-
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
-
-We recommend writing TypeScript code using Visual Studio code:
-
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "tsc: watch - tsconfig.json". You will have to do this again every time
-    you reopen Visual Studio Code.
-
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+The plugin currently only supports frames and groups under 257px in width and height for performance reasons. This may change in future versions. I want to hear your suggestions and feedback, pleaset get in touch using the support link on the right.
