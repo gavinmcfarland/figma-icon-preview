@@ -56,8 +56,8 @@
 		return imageData
 	}
 
-	function refreshPreview() {
-		parent.postMessage({ pluginMessage: { type: 'refresh' } }, '*')
+	function setPreview() {
+		parent.postMessage({ pluginMessage: { type: 'set-preview' } }, '*')
 	}
 
 	function inspectIcon() {
@@ -69,7 +69,7 @@
 		const preview = root.querySelector('#preview')
 		const thumbnail = root.querySelector('#thumbnail')
 		// const thumbnail2 = root.querySelector('#thumbnail2')
-		const iconName = root.querySelector('#iconName')
+		// const iconName = root.querySelector('#iconName')
 		// const selectIcon = root.querySelector('#selectIcon')
 		const thumbnails = root.querySelector('#thumbnails')
 
@@ -88,6 +88,8 @@
 		window.onmessage = async (event) => {
 			const message = event.data.pluginMessage
 
+			console.log(message)
+
 			if (message) {
 				// Add/remove classes
 				// selectIcon.classList.add('hide')
@@ -95,48 +97,58 @@
 				// preview.classList.add('show')
 				// icons1.classList.add('show')
 
-				iconName.innerHTML = message.name
-
 				const canvas2 = document.createElement('canvas')
-				const ctx2 = canvas2.getContext('2d')
+					const ctx2 = canvas2.getContext('2d')
 
-				await decodeImage(canvas2, ctx2, message.thumbnail.current)
-				thumbnail.appendChild(canvas2)
-				thumbnail.children[0].parentNode.replaceChild(canvas2, thumbnail.children[0])
+				if (message.selectedIconThumbnail) {
+					await decodeImage(canvas2, ctx2, message.selectedIconThumbnail)
+					thumbnail.appendChild(canvas2)
+					thumbnail.children[0].parentNode.replaceChild(canvas2, thumbnail.children[0])
+				}
 
-				for (let i = 0; i < message.thumbnails.length; i++) {
-					if (thumbnails.children[i]) {
-						const canvas = document.createElement('canvas')
+				if (message.name && message.thumbnails) {
+					// iconName.innerHTML = message.name
 
-						const ctx = canvas.getContext('2d')
 
-						var bytes = message.thumbnails[i].image
 
-						await decodeImage(canvas, ctx, bytes)
 
-						thumbnails.children[i].appendChild(canvas)
-						thumbnails.children[i].children[0].parentNode.replaceChild(canvas, thumbnails.children[i].children[0])
-						thumbnails.children[i].children[1].children[1].children[0].innerHTML = message.thumbnails[i].size
 
-						if (message.thumbnails[i].group) {
-							if (i > 0) {
-								if (
-									message.thumbnails[i].group !== message.thumbnails[i - 1].group
-								) {
+					for (let i = 0; i < message.thumbnails.length; i++) {
+						if (thumbnails.children[i]) {
+							const canvas = document.createElement('canvas')
+
+							const ctx = canvas.getContext('2d')
+
+							var bytes = message.thumbnails[i].image
+
+							await decodeImage(canvas, ctx, bytes)
+
+							thumbnails.children[i].appendChild(canvas)
+							thumbnails.children[i].children[0].parentNode.replaceChild(canvas, thumbnails.children[i].children[0])
+							thumbnails.children[i].children[1].children[1].children[0].innerHTML = message.thumbnails[i].size
+
+							if (message.thumbnails[i].group) {
+								if (i > 0) {
+									if (
+										message.thumbnails[i].group !== message.thumbnails[i - 1].group
+									) {
+										thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
+										thumbnails.children[i].classList.add('first')
+									}
+								} else {
 									thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
 									thumbnails.children[i].classList.add('first')
 								}
-							} else {
-								thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
-								thumbnails.children[i].classList.add('first')
 							}
-						}
 
-						if (message.thumbnails[i].label) {
-							thumbnails.children[i].children[1].children[1].children[1].innerHTML = message.thumbnails[i].label
+							if (message.thumbnails[i].label) {
+								thumbnails.children[i].children[1].children[1].children[1].innerHTML = message.thumbnails[i].label
+							}
 						}
 					}
 				}
+
+
 			} else {
 				// preview.classList.add('hide')
 				// selectIcon.classList.add('show')
@@ -327,20 +339,20 @@
 
 		<div id="toolbar" bind:this="{toolbar}" class="p-xxsmall flex" style="justify-content: space-between;">
 
-			<div style="flex-grow: 1; display: flex">
+			<!-- <div style="flex-grow: 1; display: flex">
 				<button id="inspect-icon" on:click={() => {
 						inspectIcon();
 					}} class="icon-button mr-xxxsmall" style="padding: 0">
-					<div id="thumbnail"><canvas></canvas></div>
+
 				</button>
 				<p style="margin-top: 0; margin-bottom: 0; align-self: center" id="iconName" class="type--small mr-xsmall">
 					Select Icon
 				</p>
-			</div>
+			</div> -->
 
 			<button id="refresh" on:click={() => {
-						refreshPreview();
-					}} class="button button--secondary">Refresh</button>
+						setPreview();
+					}} class="button button--secondary"><div id="thumbnail"><canvas width="16" height="16"></canvas></div> Preview Selected</button>
 		</div>
 
 		<svg id="corner" use:resize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -377,6 +389,16 @@
 	}
 	:global(body):hover #corner {
 		display: block;
+	}
+
+	#thumbnail {
+		margin-right: 6px;
+		margin-left: -8px;
+	}
+
+	#thumbnail canvas {
+		width: 16px !important;
+		height: 16px !important;
 	}
 
 	.wrapper {
