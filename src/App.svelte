@@ -64,10 +64,6 @@
 		parent.postMessage({ pluginMessage: { type: 'set-preview' } }, '*')
 	}
 
-	function inspectIcon() {
-		parent.postMessage({ pluginMessage: { type: 'inspect' } }, '*')
-	}
-
 	// onMount(() => {
 	// 	const thumbnails = root.querySelector('#thumbnails')
 
@@ -143,6 +139,8 @@
 	async function onLoad(event) {
 		message = await event.data.pluginMessage;
 
+		const thumbnails = root.querySelector('#thumbnails')
+
 			// console.log(message)
 
 			if (message) {
@@ -160,7 +158,6 @@
 
 				if (message.thumbnails) {
 					// iconName.innerHTML = message.name
-
 
 
 

@@ -93,7 +93,7 @@ function nodeIsSmall(node) {
 	return node.height <= 256 && node.width <= 256
 }
 
-var message, lastSelectedNode, imageBytes, currentlySelectedIcon
+var message, lastSelectedIcon, imageBytes, currentlySelectedIcon
 
 async function generateThumbnail(node, currentSize, desiredSize) {
 
@@ -211,13 +211,14 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 
 
 // Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
-setInterval(() => {
-	getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-		getThumbnails(currentlySelectedIcon).then((thumbnails) => {
-			figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
-		})
-	})
-}, 1200)
+// Disabled also because slows down Figma/computer
+// setInterval(() => {
+// 	getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+// 		getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+// 			figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
+// 		})
+// 	})
+// }, 1200)
 
 figma.ui.onmessage = msg => {
 
@@ -225,8 +226,10 @@ figma.ui.onmessage = msg => {
 	// Manual refresh
 	if (msg.type === 'set-preview') {
 		currentlySelectedIcon = figma.currentPage.selection[0]
-		getThumbnails(currentlySelectedIcon, true).then((thumbnails) => {
-			figma.ui.postMessage({ thumbnails })
+		getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+			getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+				figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
+			})
 		})
 	}
 
@@ -240,9 +243,11 @@ figma.ui.onmessage = msg => {
 					if (nodeIsSmall(figma.currentPage.selection[0])) {
 
 						currentlySelectedIcon = figma.currentPage.selection[0]
-						getThumbnails(currentlySelectedIcon, true).then((thumbnails) => {
-							figma.ui.postMessage({ thumbnails })
-						})
+							getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+								getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+									figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
+								})
+							})
 					}
 					else {
 						figma.notify("Frame must be smaller than 256px")

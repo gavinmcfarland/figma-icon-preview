@@ -196,19 +196,22 @@ figma.clientStorage.getAsync('uiSize').then(size => {
     }
 });
 // Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
-setInterval(() => {
-    getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-        getThumbnails(currentlySelectedIcon).then((thumbnails) => {
-            figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail });
-        });
-    });
-}, 1200);
+// Disabled also because slows down Figma/computer
+// setInterval(() => {
+// 	getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+// 		getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+// 			figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
+// 		})
+// 	})
+// }, 1200)
 figma.ui.onmessage = msg => {
     // Manual refresh
     if (msg.type === 'set-preview') {
         currentlySelectedIcon = figma.currentPage.selection[0];
-        getThumbnails(currentlySelectedIcon).then((thumbnails) => {
-            figma.ui.postMessage({ thumbnails });
+        getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+            getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+                figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail });
+            });
         });
     }
     // Isnpect icon
@@ -218,8 +221,10 @@ figma.ui.onmessage = msg => {
                 if (nodeIsBox(figma.currentPage.selection[0])) {
                     if (nodeIsSmall(figma.currentPage.selection[0])) {
                         currentlySelectedIcon = figma.currentPage.selection[0];
-                        getThumbnails(currentlySelectedIcon).then((thumbnails) => {
-                            figma.ui.postMessage({ thumbnails });
+                        getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+                            getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+                                figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail });
+                            });
                         });
                     }
                     else {
