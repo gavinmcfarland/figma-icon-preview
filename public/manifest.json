@@ -1,0 +1,8 @@
+{
+  "name": "Icon Preview",
+  "id": "888907972695800109",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "index.html",
+  "editorType": ["figma"]
+}
