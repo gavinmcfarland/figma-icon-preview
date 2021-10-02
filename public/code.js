@@ -15,6 +15,7 @@ figma.ui.onmessage = message => {
   }
 };
 
+console.clear();
 var thumbnailSettings = [
     {
         size: 16,
@@ -117,18 +118,8 @@ async function generateThumbnail(node, currentSize, desiredSize) {
     // temp.remove()
     return image;
 }
-async function setPreview(node, refresh) {
-    var currentNode = node;
-    // if (refresh) {
-    // 	currentNode = lastSelectedNode
-    // 	if (lastSelectedNode.removed) {
-    // 		figma.notify("Node was removed")
-    // 	}
-    // } else {
-    // 	currentNode = figma.currentPage.selection[0]
-    // }
-    console.log(currentNode);
-    if (currentNode) {
+async function getThumbnails(node, refresh) {
+    if (node) {
         // Save current node for when preview is refeshed
         // if (!refresh) {
         // 	lastSelectedNode = figma.currentPage.selection[0]
@@ -139,7 +130,7 @@ async function setPreview(node, refresh) {
             name: ""
         };
         // Generate thumbnail for current frame
-        message.thumbnail.current = await generateThumbnail(currentNode, currentNode.width, 16);
+        message.thumbnail.current = await generateThumbnail(node, node.width, 16);
         // Generate thumbnail previews
         for (let i = 0; i < thumbnailSettings.length; i++) {
             message.thumbnails.push({});
@@ -147,11 +138,11 @@ async function setPreview(node, refresh) {
             message.thumbnails[i].size = thumbnailSettings[i].size;
             message.thumbnails[i].group = thumbnailSettings[i].group;
             message.thumbnails[i].label = thumbnailSettings[i].label;
-            message.thumbnails[i].image = await generateThumbnail(currentNode, currentNode.width, thumbnailSettings[i].size);
+            message.thumbnails[i].image = await generateThumbnail(node, node.width, thumbnailSettings[i].size);
         }
         // message.thumbnails = thumbnails
-        message.name = currentNode.name;
-        figma.ui.postMessage(message);
+        message.name = node.name;
+        return message.thumbnails;
     }
 }
 async function getThumbnailPreview(node) {
@@ -177,7 +168,11 @@ figma.clientStorage.getAsync('uiSize').then(size => {
             if (nodeIsSmall(figma.currentPage.selection[0])) {
                 figma.showUI(__html__, size);
                 currentlySelectedIcon = figma.currentPage.selection[0];
-                setPreview(figma.currentPage.selection[0]);
+                getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+                    getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+                        figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail });
+                    });
+                });
             }
             else {
                 figma.notify("Frame must be smaller than 256px");
@@ -191,7 +186,7 @@ figma.clientStorage.getAsync('uiSize').then(size => {
     }
     else if (figma.currentPage.selection.length === 0) {
         figma.showUI(__html__);
-        setPreview(figma.currentPage.selection[0]);
+        getThumbnails(figma.currentPage.selection[0]);
         message = false;
         figma.ui.postMessage(message);
     }
@@ -200,15 +195,21 @@ figma.clientStorage.getAsync('uiSize').then(size => {
         figma.closePlugin();
     }
 });
-// // Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
-// setInterval(() => {
-// 	setPreview(currentlySelectedIcon)
-// }, 1500)
+// Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
+setInterval(() => {
+    getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+        getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+            figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail });
+        });
+    });
+}, 1200);
 figma.ui.onmessage = msg => {
     // Manual refresh
     if (msg.type === 'set-preview') {
         currentlySelectedIcon = figma.currentPage.selection[0];
-        setPreview(currentlySelectedIcon);
+        getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+            figma.ui.postMessage({ thumbnails });
+        });
     }
     // Isnpect icon
     if (msg.type === 'inspect') {
@@ -216,9 +217,10 @@ figma.ui.onmessage = msg => {
             if (figma.currentPage.selection.length === 1) {
                 if (nodeIsBox(figma.currentPage.selection[0])) {
                     if (nodeIsSmall(figma.currentPage.selection[0])) {
-                        console.log(figma.currentPage.selection[0].height);
                         currentlySelectedIcon = figma.currentPage.selection[0];
-                        setPreview(figma.currentPage.selection[0]);
+                        getThumbnails(currentlySelectedIcon).then((thumbnails) => {
+                            figma.ui.postMessage({ thumbnails });
+                        });
                     }
                     else {
                         figma.notify("Frame must be smaller than 256px");

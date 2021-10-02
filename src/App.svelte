@@ -6,6 +6,10 @@
 	export const name: string = ''
 	let root;
 	let toolbar;
+	let message
+	let canvas2
+	let thumbnail
+	let preview
 
 
 	function resize(node, event) {
@@ -64,51 +68,98 @@
 		parent.postMessage({ pluginMessage: { type: 'inspect' } }, '*')
 	}
 
-	onMount(() => {
-		const icons1 = root.querySelector('#icons')
-		const preview = root.querySelector('#preview')
-		const thumbnail = root.querySelector('#thumbnail')
-		// const thumbnail2 = root.querySelector('#thumbnail2')
-		// const iconName = root.querySelector('#iconName')
-		// const selectIcon = root.querySelector('#selectIcon')
-		const thumbnails = root.querySelector('#thumbnails')
+	// onMount(() => {
+	// 	const thumbnails = root.querySelector('#thumbnails')
 
-		// root.getElementById('refresh').onclick = () => {
-		// 	parent.postMessage({ pluginMessage: { type: 'refresh' } }, '*')
-		// }
 
-		// root.getElementById('inspect-icon').onclick = () => {
-		// 	parent.postMessage({ pluginMessage: { type: 'inspect' } }, '*')
-		// }
+	// 	window.onmessage = async (event) => {
+	// 		message = event.data.pluginMessage
 
-		// root.getElementById('inspect').onclick = () => {
-		// 	parent.postMessage({ pluginMessage: { type: 'inspect' } }, '*')
-		// }
+	// 		// console.log(message)
 
-		window.onmessage = async (event) => {
-			const message = event.data.pluginMessage
+	// 		if (message) {
 
-			console.log(message)
+	// 			if (message.selectedIconThumbnail) {
+	// 				const ctx2 = canvas2.getContext('2d')
+	// 				await decodeImage(canvas2, ctx2, message.selectedIconThumbnail)
+	// 				preview.classList.add('show')
+	// 				thumbnail.appendChild(canvas2)
+	// 				thumbnail.children[0].parentNode.replaceChild(canvas2, thumbnail.children[0])
+	// 			}
+	// 			else {
+	// 				preview.classList.remove('show')
+	// 			}
+
+	// 			if (message.thumbnails) {
+	// 				// iconName.innerHTML = message.name
+	// 				console.log(message.thumbnails)
+
+
+
+
+	// 				for (let i = 0; i < message.thumbnails.length; i++) {
+	// 					if (thumbnails.children[i]) {
+	// 						const canvas = document.createElement('canvas')
+
+	// 						const ctx = canvas.getContext('2d')
+
+	// 						var bytes = message.thumbnails[i].image
+
+	// 						await decodeImage(canvas, ctx, bytes)
+
+	// 						thumbnails.children[i].appendChild(canvas)
+	// 						thumbnails.children[i].children[0].parentNode.replaceChild(canvas, thumbnails.children[i].children[0])
+	// 						thumbnails.children[i].children[1].children[1].children[0].innerHTML = message.thumbnails[i].size
+
+	// 						if (message.thumbnails[i].group) {
+	// 							if (i > 0) {
+	// 								if (
+	// 									message.thumbnails[i].group !== message.thumbnails[i - 1].group
+	// 								) {
+	// 									thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
+	// 									thumbnails.children[i].classList.add('first')
+	// 								}
+	// 							} else {
+	// 								thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
+	// 								thumbnails.children[i].classList.add('first')
+	// 							}
+	// 						}
+
+	// 						if (message.thumbnails[i].label) {
+	// 							thumbnails.children[i].children[1].children[1].children[1].innerHTML = message.thumbnails[i].label
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+
+
+	// 		} else {
+	// 			// preview.classList.add('hide')
+	// 			// selectIcon.classList.add('show')
+	// 		}
+	// 	}
+	// })
+
+	async function onLoad(event) {
+		message = await event.data.pluginMessage;
+
+			// console.log(message)
 
 			if (message) {
-				// Add/remove classes
-				// selectIcon.classList.add('hide')
-				// selectIcon.classList.remove('show')
-				// preview.classList.add('show')
-				// icons1.classList.add('show')
-
-				const canvas2 = document.createElement('canvas')
-					const ctx2 = canvas2.getContext('2d')
 
 				if (message.selectedIconThumbnail) {
+					const ctx2 = canvas2.getContext('2d')
 					await decodeImage(canvas2, ctx2, message.selectedIconThumbnail)
+					preview.classList.add('show')
 					thumbnail.appendChild(canvas2)
 					thumbnail.children[0].parentNode.replaceChild(canvas2, thumbnail.children[0])
 				}
+				else {
+					preview.classList.remove('show')
+				}
 
-				if (message.name && message.thumbnails) {
+				if (message.thumbnails) {
 					// iconName.innerHTML = message.name
-
 
 
 
@@ -153,9 +204,11 @@
 				// preview.classList.add('hide')
 				// selectIcon.classList.add('show')
 			}
-		}
-	})
+
+	}
 </script>
+
+<svelte:window on:message={onLoad}/>
 
 <div class="wrapper" bind:this={root}>
 
@@ -350,9 +403,11 @@
 				</p>
 			</div> -->
 
-			<button id="refresh" on:click={() => {
+			<!-- {#if message?.selectedIconThumbnail} -->
+			<button id="refresh" bind:this="{preview}" on:click={() => {
 						setPreview();
-					}} class="button button--secondary"><div id="thumbnail"><canvas width="16" height="16"></canvas></div> Preview Selected</button>
+					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Preview Selected</span></button>
+			<!-- {/if} -->
 		</div>
 
 		<svg id="corner" use:resize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -379,6 +434,10 @@
 
 <style global>
 
+	:global(*) {
+		box-sizing: border-box;
+	}
+
 	#corner{
 		/* display: none; */
 		position: absolute;
@@ -391,9 +450,13 @@
 		display: block;
 	}
 
+	.show {
+		display: block;
+	}
+
 	#thumbnail {
 		margin-right: 6px;
-		margin-left: -8px;
+		/* margin-left: -8px; */
 	}
 
 	#thumbnail canvas {
@@ -2586,6 +2649,7 @@
 		/* position: fixed; */
 		/* bottom: 0; */
 		/* width: 100%; */
+		min-height: 49px;
 		border-top: 1px solid #e5e5e5;
 		background-color: white;
 	}
@@ -2642,11 +2706,15 @@
 		place-items: center;
 	}
 
-	.hide {
+	.previewButton {
+		padding: 8px;
+		width: 146px;
+		margin-left: auto;
 		display: none;
+		justify-content: center;
 	}
 
 	.show {
-		display: grid;
+		display: flex;
 	}
 </style>
