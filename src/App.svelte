@@ -12,6 +12,7 @@
 	let preview
 	let canvasColor = "#ffffff"
 	let oppositeColor;
+	let selectedIconThumbnail
 
 
 	function resize(node, event) {
@@ -80,6 +81,7 @@
 	}
 
 	function setPreview() {
+		selectedIconThumbnail = undefined
 		parent.postMessage({ pluginMessage: { type: 'set-preview' } }, '*')
 	}
 
@@ -257,9 +259,9 @@
 
 			// console.log(message)
 
-			if (message) {
+			selectedIconThumbnail = message?.selectedIconThumbnail
 
-				if (message.selectedIconThumbnail) {
+				if (selectedIconThumbnail) {
 					// const ctx2 = canvas2.getContext('2d')
 					// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
 					var svg = createSvg(message.selectedIconThumbnail)
@@ -275,6 +277,9 @@
 				else {
 					preview.classList.remove('show')
 				}
+			if (message) {
+
+
 
 
 
@@ -2845,7 +2850,7 @@
 
 	.previewButton {
 		padding: 8px;
-		width: 96px;
+		width: 88px;
 		margin-left: auto;
 		display: none;
 		justify-content: center;
