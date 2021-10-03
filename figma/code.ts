@@ -375,7 +375,7 @@ setInterval(() => {
 		getThumbnailPreview(selectedIcon).then((thumbnail) => {
 			var selectedIconThumbnail
 			if (isIcon(figma.currentPage.selection[0])) {
-				if (figma.currentPage.selection.length > 0) {
+				if (figma.currentPage.selection.length === 1) {
 					if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
 						selectedIconThumbnail = undefined
 					}
