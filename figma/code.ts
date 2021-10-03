@@ -187,8 +187,10 @@ function getCanvasColor() {
 }
 
 function isIcon(node) {
-	if ((node.width === node.height) && (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "GROUP")) {
-		return node
+	if (node) {
+		if ((node.width === node.height) && (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "GROUP")) {
+			return node
+		}
 	}
 }
 
@@ -369,6 +371,7 @@ setInterval(() => {
 	if (selectedIcon) {
 		console.log("selectedIcon", selectedIcon)
 
+
 		getThumbnailPreview(selectedIcon).then((thumbnail) => {
 			var selectedIconThumbnail
 			if (isIcon(figma.currentPage.selection[0])) {
@@ -386,6 +389,7 @@ setInterval(() => {
 				figma.ui.postMessage({ ...msg, selectedIconThumbnail })
 			})
 		})
+
 
 	}
 

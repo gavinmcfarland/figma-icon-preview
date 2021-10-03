@@ -166,8 +166,10 @@ function getCanvasColor() {
     }
 }
 function isIcon(node) {
-    if ((node.width === node.height) && (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "GROUP")) {
-        return node;
+    if (node) {
+        if ((node.width === node.height) && (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "GROUP")) {
+            return node;
+        }
     }
 }
 function isInsideContainer(node, container) {
