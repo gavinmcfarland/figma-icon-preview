@@ -41,7 +41,24 @@
 		// };
 	}
 
-	async function decodeImage(canvas, ctx, bytes, scale = 1) {
+	async function figmaImageDataToCanvas(data: Uint8Array): Promise<HTMLCanvasElement> {
+		const canvas = document.createElement('canvas');
+		const ctx = canvas.getContext('2d');
+		const url = URL.createObjectURL(new Blob([data]));
+		const image: HTMLImageElement = await new Promise((resolve, reject) => {
+			const img = new Image();
+			img.onload = () => resolve(img);
+			img.onerror = () => reject();
+			img.src = url;
+		});
+		canvas.width = image.width;
+		canvas.height = image.height;
+		ctx.drawImage(image, 0, 0);
+    return canvas;
+	}
+
+	async function decodeImage(canvas, ctx, bytes, size) {
+		var scale = 1;
 		const url = URL.createObjectURL(new Blob([bytes]))
 
 		const image = await new Promise((resolve, reject) => {
@@ -53,8 +70,8 @@
 
 		canvas.width = image.width
 		canvas.height = image.height
-		canvas.style.width = (canvas.width * scale) / 2 + 'px'
-		canvas.style.height = (canvas.width * scale) / 2 + 'px'
+		canvas.style.width = size + 'px'
+		canvas.style.height = size + 'px'
 		ctx.drawImage(image, 0, 0)
 		const imageData = ctx.getImageData(0, 0, image.width, image.height)
 		return imageData
@@ -136,43 +153,92 @@
 	// 	}
 	// })
 
+	async function genThumbnailImage(bytes) {
+		const canvas = document.createElement('canvas')
+		const ctx = canvas.getContext('2d')
+		var imageData = await decodeImage(canvas, ctx, bytes, 84)
+		return {
+			imageData,
+			canvas
+		}
+	}
+
+	function cloneCanvas(oldCanvas) {
+
+		//create a new canvas
+		var newCanvas = document.createElement('canvas');
+		var context = newCanvas.getContext('2d');
+
+		//set dimensions
+		newCanvas.width = oldCanvas.width;
+		newCanvas.height = oldCanvas.height;
+
+		//apply the old canvas to the new one
+		context.drawImage(oldCanvas, 0, 0);
+
+		//return the new canvas
+		return newCanvas;
+	}
+
+	function createSvg(svgString) {
+		var container = document.createElement('div');
+		container.innerHTML = svgString;
+		var child = container.children[0]
+		// var svg = child.cloneNode(true)
+		// container.remove()
+		// child.remove()
+		return child
+	}
+
 	async function onLoad(event) {
 		message = await event.data.pluginMessage;
 
 		const thumbnails = root.querySelector('#thumbnails')
+
+		if (message.canvasColor) {
+			root.style.backgroundColor = message.canvasColor
+			console.log(message.canvasColor)
+		}
 
 			// console.log(message)
 
 			if (message) {
 
 				if (message.selectedIconThumbnail) {
-					const ctx2 = canvas2.getContext('2d')
-					await decodeImage(canvas2, ctx2, message.selectedIconThumbnail)
+					// const ctx2 = canvas2.getContext('2d')
+					// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
+					var svg = createSvg(message.selectedIconThumbnail)
+					// svg.style.width = "16px"
+					// svg.style.height = "16px"
 					preview.classList.add('show')
-					thumbnail.appendChild(canvas2)
-					thumbnail.children[0].parentNode.replaceChild(canvas2, thumbnail.children[0])
+					svg.style.width = 16
+					svg.style.height = 16
+					thumbnail.appendChild(svg)
+					thumbnail.replaceChild(svg, thumbnail.children[0])
+					// thumbnail.children[0].parentNode.replaceChild(svg, thumbnail.children[0])
 				}
 				else {
 					preview.classList.remove('show')
 				}
 
-				if (message.thumbnails) {
-					// iconName.innerHTML = message.name
 
 
+				if (message.currentIconThumbnail && message.thumbnails) {
+					var canvas
+							if (message.currentIconThumbnail) {
+								canvas = createSvg(message.currentIconThumbnail)
+							}
 
 					for (let i = 0; i < message.thumbnails.length; i++) {
 						if (thumbnails.children[i]) {
-							const canvas = document.createElement('canvas')
 
-							const ctx = canvas.getContext('2d')
+							let clone = canvas.cloneNode(true)
 
-							var bytes = message.thumbnails[i].image
+							clone.style.width = message.thumbnails[i].size
+							clone.style.height = message.thumbnails[i].size
 
-							await decodeImage(canvas, ctx, bytes)
-
-							thumbnails.children[i].appendChild(canvas)
-							thumbnails.children[i].children[0].parentNode.replaceChild(canvas, thumbnails.children[i].children[0])
+							thumbnails.children[i].appendChild(clone)
+							thumbnails.children[i].children[0].parentNode.replaceChild(clone, thumbnails.children[i].children[0])
 							thumbnails.children[i].children[1].children[1].children[0].innerHTML = message.thumbnails[i].size
 
 							if (message.thumbnails[i].group) {
@@ -195,6 +261,7 @@
 						}
 					}
 				}
+
 
 
 			} else {
@@ -452,7 +519,7 @@
 	}
 
 	#thumbnail {
-		margin-right: 6px;
+		margin-right: 8px;
 		/* margin-left: -8px; */
 	}
 
@@ -2635,6 +2702,34 @@
 	@media (min-width: 520px) {
 		#thumbnails>* {
 			width: calc(100% / 3);
+		}
+
+	}
+
+	@media (min-width: 740px) {
+		#thumbnails>* {
+			width: calc(100% / 4);
+		}
+
+	}
+
+	@media (min-width: 920px) {
+		#thumbnails>* {
+			width: calc(100% / 5);
+		}
+
+	}
+
+	@media (min-width: 1220px) {
+		#thumbnails>* {
+			width: calc(100% / 6);
+		}
+
+	}
+
+	@media (min-width: 1580px) {
+		#thumbnails>* {
+			width: calc(100% / 7);
 		}
 
 	}

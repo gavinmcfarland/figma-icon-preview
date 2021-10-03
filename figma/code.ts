@@ -2,6 +2,28 @@ import { setClientStorageAsync } from '@figlets/helpers'
 
 console.clear()
 
+function componentToHex(c) {
+	c = Math.floor(c * 255)
+	var hex = c.toString(16);
+	return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(rgb) {
+	if (rgb) {
+		let { r, g, b } = rgb
+		return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+	}
+}
+
+function hexToRgb(hex) {
+	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	return result ? {
+		r: parseInt(result[1], 16) / 255,
+		g: parseInt(result[2], 16) / 255,
+		b: parseInt(result[3], 16) / 255
+	} : null;
+}
+
 var thumbnailSettings = [
 	{
 		size: 16,
@@ -93,9 +115,9 @@ function nodeIsSmall(node) {
 	return node.height <= 256 && node.width <= 256
 }
 
-var message, lastSelectedIcon, imageBytes, currentlySelectedIcon
+var message, lastSelectedIcon, imageBytes, currentIcon, selectedIcon
 
-async function generateThumbnail(node, currentSize, desiredSize) {
+async function generateThumbnail(node, currentSize?, desiredSize?) {
 
 	var scale = desiredSize / currentSize
 	var revertScale = currentSize / desiredSize
@@ -103,12 +125,14 @@ async function generateThumbnail(node, currentSize, desiredSize) {
 	// temp.rescale(scale)
 
 	var image = await node.exportAsync({
-		format: "PNG",
-		constraint: {
-			type: "SCALE",
-			value: 2 * scale
-		}
+		format: "SVG",
+		// constraint: {
+		// 	type: "SCALE",
+		// 	value: 2 * scale
+		// }
 	})
+
+	image = String.fromCharCode.apply(null, image)
 
 	// temp.remove()
 
@@ -129,22 +153,19 @@ async function getThumbnails(node, refresh?) {
 			name: ""
 		}
 
-		// Generate thumbnail for current frame
-		message.thumbnail.current = await generateThumbnail(node, node.width, 16)
+		message.currentIconThumbnail = await generateThumbnail(node, node.width, 84)
 
 		// Generate thumbnail previews
 		for (let i = 0; i < thumbnailSettings.length; i++) {
 			message.thumbnails.push({})
-			message.thumbnails[i].image = ""
 			message.thumbnails[i].size = thumbnailSettings[i].size
 			message.thumbnails[i].group = thumbnailSettings[i].group
 			message.thumbnails[i].label = thumbnailSettings[i].label
-			message.thumbnails[i].image = await generateThumbnail(node, node.width, thumbnailSettings[i].size)
 		}
 
 		// message.thumbnails = thumbnails
 		message.name = node.name
-		return message.thumbnails
+		return message
 	}
 
 }
@@ -157,6 +178,14 @@ async function getThumbnailPreview(node) {
 
 }
 
+function getCanvasColor() {
+	var hex = rgbToHex(figma.currentPage.backgrounds[0].color)
+	console.log(hex)
+	if (hex !== "#e5e5e5") {
+		return hex
+	}
+}
+
 // Show preview when plugin runs
 // if (figma.command === "selected") {
 
@@ -164,6 +193,8 @@ var uiDimensions = {
 	width: 176 * 3,
 	height: (176 * 2 + 48)
 }
+
+selectedIcon = figma.currentPage.selection[0]
 
 // restore previous size
 figma.clientStorage.getAsync('uiSize').then(size => {
@@ -178,10 +209,10 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 		if (nodeIsBox(figma.currentPage.selection[0])) {
 			if (nodeIsSmall(figma.currentPage.selection[0])) {
 				figma.showUI(__html__, size);
-				currentlySelectedIcon = figma.currentPage.selection[0]
+				currentIcon = figma.currentPage.selection[0]
 				getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-					getThumbnails(currentlySelectedIcon).then((thumbnails) => {
-						figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
+					getThumbnails(currentIcon).then((msg) => {
+						figma.ui.postMessage({ ...msg, selectedIconThumbnail: thumbnail, canvasColor: getCanvasColor() })
 					})
 				})
 
@@ -210,25 +241,23 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 })
 
 
-// Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
-// Disabled also because slows down Figma/computer
-// setInterval(() => {
-// 	getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-// 		getThumbnails(currentlySelectedIcon).then((thumbnails) => {
-// 			figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
-// 		})
-// 	})
-// }, 1200)
+
 
 figma.ui.onmessage = msg => {
 
 
 	// Manual refresh
 	if (msg.type === 'set-preview') {
-		currentlySelectedIcon = figma.currentPage.selection[0]
-		getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-			getThumbnails(currentlySelectedIcon).then((thumbnails) => {
-				figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
+		if (selectedIcon) {
+			currentIcon = selectedIcon
+		}
+		else {
+			currentIcon = figma.currentPage.selection[0]
+		}
+
+		getThumbnailPreview(selectedIcon).then((thumbnail) => {
+			getThumbnails(currentIcon).then((msg) => {
+				figma.ui.postMessage({ ...msg, selectedIconThumbnail: thumbnail })
 			})
 		})
 	}
@@ -242,10 +271,10 @@ figma.ui.onmessage = msg => {
 				if (nodeIsBox(figma.currentPage.selection[0])) {
 					if (nodeIsSmall(figma.currentPage.selection[0])) {
 
-						currentlySelectedIcon = figma.currentPage.selection[0]
+						currentIcon = figma.currentPage.selection[0]
 							getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-								getThumbnails(currentlySelectedIcon).then((thumbnails) => {
-									figma.ui.postMessage({ thumbnails, selectedIconThumbnail: thumbnail })
+								getThumbnails(currentIcon).then((msg) => {
+									figma.ui.postMessage({ ...msg, selectedIconThumbnail: thumbnail })
 								})
 							})
 					}
@@ -272,9 +301,32 @@ figma.ui.onmessage = msg => {
 
 figma.on('selectionchange', () => {
 	console.log("selection changed")
-	getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-		figma.ui.postMessage({
-			selectedIconThumbnail: thumbnail
-		})
-	})
+	if (figma.currentPage.selection.length === 1) {
+		if (figma.currentPage.selection[0].width === figma.currentPage.selection[0].height) {
+			selectedIcon = figma.currentPage.selection[0]
+		}
+		if (figma.currentPage.selection[0].width === figma.currentPage.selection[0].height) {
+			if (figma.currentPage.selection.length === 1) {
+				getThumbnailPreview(selectedIcon).then((thumbnail) => {
+					figma.ui.postMessage({
+						selectedIconThumbnail: thumbnail
+					})
+				})
+			}
+		}
+	}
 })
+
+
+// Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
+// Disabled also because slows down Figma/computer
+setInterval(() => {
+	console.log("updated preview")
+	if (selectedIcon) {
+		getThumbnailPreview(selectedIcon).then((thumbnail) => {
+			getThumbnails(currentIcon).then((msg) => {
+				figma.ui.postMessage({ ...msg, selectedIconThumbnail: thumbnail })
+			})
+		})
+	}
+}, 600)
