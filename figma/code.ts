@@ -186,6 +186,16 @@ function getCanvasColor() {
 	}
 }
 
+function isIcon(node) {
+	if ((node.width === node.height) && (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "GROUP")) {
+		return node
+	}
+}
+
+function isInsideContainer(node, container) {
+	return container.findOne(n => n.id === node.id)
+}
+
 // Show preview when plugin runs
 // if (figma.command === "selected") {
 
@@ -208,13 +218,23 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 	if (figma.currentPage.selection.length === 1) {
 		if (nodeIsBox(figma.currentPage.selection[0])) {
 			if (nodeIsSmall(figma.currentPage.selection[0])) {
-				figma.showUI(__html__, size);
-				currentIcon = figma.currentPage.selection[0]
-				getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-					getThumbnails(currentIcon).then((msg) => {
-						figma.ui.postMessage({ ...msg, selectedIconThumbnail: thumbnail, canvasColor: getCanvasColor() })
-					})
-				})
+				if (isIcon(figma.currentPage.selection[0])) {
+
+						figma.showUI(__html__, size);
+						currentIcon = figma.currentPage.selection[0]
+						getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+							getThumbnails(currentIcon).then((msg) => {
+								var selectedIconThumbnail
+								if (figma.currentPage.selection[0].id !== currentIcon.id) {
+									selectedIconThumbnail = thumbnail
+								}
+								figma.ui.postMessage({ ...msg, selectedIconThumbnail, canvasColor: getCanvasColor() })
+							})
+						})
+
+
+				}
+
 
 
 			}
@@ -264,33 +284,33 @@ figma.ui.onmessage = msg => {
 
 
 	// Isnpect icon
-	if (msg.type === 'inspect') {
+	// if (msg.type === 'inspect') {
 
-		figma.once("selectionchange", () => {
-			if (figma.currentPage.selection.length === 1) {
-				if (nodeIsBox(figma.currentPage.selection[0])) {
-					if (nodeIsSmall(figma.currentPage.selection[0])) {
+	// 	figma.once("selectionchange", () => {
+	// 		if (figma.currentPage.selection.length === 1) {
+	// 			if (nodeIsBox(figma.currentPage.selection[0])) {
+	// 				if (nodeIsSmall(figma.currentPage.selection[0])) {
 
-						currentIcon = figma.currentPage.selection[0]
-							getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
-								getThumbnails(currentIcon).then((msg) => {
-									figma.ui.postMessage({ ...msg, selectedIconThumbnail: thumbnail })
-								})
-							})
-					}
-					else {
-						figma.notify("Frame must be smaller than 256px")
-					}
-				}
-				else {
-					figma.notify("Selection must be a frame or group to preview")
-				}
-			}
-			else {
-				figma.notify("Please select one group or frame")
-			}
-		})
-	}
+	// 					currentIcon = figma.currentPage.selection[0]
+	// 						getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
+	// 							getThumbnails(currentIcon).then((msg) => {
+	// 								figma.ui.postMessage({ ...msg, selectedIconThumbnail: thumbnail })
+	// 							})
+	// 						})
+	// 				}
+	// 				else {
+	// 					figma.notify("Frame must be smaller than 256px")
+	// 				}
+	// 			}
+	// 			else {
+	// 				figma.notify("Selection must be a frame or group to preview")
+	// 			}
+	// 		}
+	// 		else {
+	// 			figma.notify("Please select one group or frame")
+	// 		}
+	// 	})
+	// }
 
 	if (msg.type === 'resize') {
 		figma.ui.resize(msg.size.width, msg.size.height);
@@ -302,18 +322,42 @@ figma.ui.onmessage = msg => {
 figma.on('selectionchange', () => {
 	console.log("selection changed")
 	if (figma.currentPage.selection.length === 1) {
-		if (figma.currentPage.selection[0].width === figma.currentPage.selection[0].height) {
-			selectedIcon = figma.currentPage.selection[0]
+		if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
+			figma.ui.postMessage({
+				selectedIconThumbnail: undefined
+			})
 		}
-		if (figma.currentPage.selection[0].width === figma.currentPage.selection[0].height) {
-			if (figma.currentPage.selection.length === 1) {
-				getThumbnailPreview(selectedIcon).then((thumbnail) => {
-					figma.ui.postMessage({
-						selectedIconThumbnail: thumbnail
-					})
-				})
+		else {
+			if (figma.currentPage.selection[0].width === figma.currentPage.selection[0].height) {
+				selectedIcon = figma.currentPage.selection[0]
+			}
+			if (figma.currentPage.selection[0].width === figma.currentPage.selection[0].height) {
+				if (figma.currentPage.selection.length === 1) {
+					if (isIcon(figma.currentPage.selection[0])) {
+						getThumbnailPreview(selectedIcon).then((thumbnail) => {
+							var selectedIconThumbnail
+							if (figma.currentPage.selection[0].id !== currentIcon.id) {
+								selectedIconThumbnail = thumbnail
+							}
+							else {
+								selectedIconThumbnail = undefined
+							}
+							figma.ui.postMessage({
+								selectedIconThumbnail
+							})
+						})
+					}
+				}
 			}
 		}
+
+	}
+	else {
+		// getThumbnailPreview(selectedIcon).then((thumbnail) => {
+			figma.ui.postMessage({
+				selectedIconThumbnail: undefined
+			})
+		// })
 	}
 })
 
@@ -323,10 +367,33 @@ figma.on('selectionchange', () => {
 setInterval(() => {
 	console.log("updated preview")
 	if (selectedIcon) {
+		console.log("selectedIcon", selectedIcon)
+
 		getThumbnailPreview(selectedIcon).then((thumbnail) => {
+			var selectedIconThumbnail
+			if (isIcon(figma.currentPage.selection[0])) {
+				if (figma.currentPage.selection.length > 0) {
+					if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
+						selectedIconThumbnail = undefined
+					}
+					else if (figma.currentPage.selection[0].id !== currentIcon.id) {
+						selectedIconThumbnail = thumbnail
+					}
+				}
+			}
+
 			getThumbnails(currentIcon).then((msg) => {
-				figma.ui.postMessage({ ...msg, selectedIconThumbnail: thumbnail })
+				figma.ui.postMessage({ ...msg, selectedIconThumbnail })
 			})
 		})
+
 	}
-}, 600)
+
+	// if (currentIcon) {
+	// 	getThumbnails(currentIcon).then((msg) => {
+	// 		figma.ui.postMessage({ ...msg })
+	// 	})
+	// }
+
+
+}, 300)

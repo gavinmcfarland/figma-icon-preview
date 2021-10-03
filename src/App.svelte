@@ -224,10 +224,11 @@
 
 
 				if (message.currentIconThumbnail && message.thumbnails) {
+					console.log(message.currentIconThumbnail)
 					var canvas
-							if (message.currentIconThumbnail) {
-								canvas = createSvg(message.currentIconThumbnail)
-							}
+					if (message.currentIconThumbnail) {
+						canvas = createSvg(message.currentIconThumbnail)
+					}
 
 					for (let i = 0; i < message.thumbnails.length; i++) {
 						if (thumbnails.children[i]) {
@@ -275,6 +276,8 @@
 <svelte:window on:message={onLoad}/>
 
 <div class="wrapper" bind:this={root}>
+
+
 
 		<div class="preview-window">
 		<!-- Empty divs to prevent layout changing when loading thumbnails -->
@@ -455,23 +458,9 @@
 		</div>
 
 		<div id="toolbar" bind:this="{toolbar}" class="p-xxsmall flex" style="justify-content: space-between;">
-
-			<!-- <div style="flex-grow: 1; display: flex">
-				<button id="inspect-icon" on:click={() => {
-						inspectIcon();
-					}} class="icon-button mr-xxxsmall" style="padding: 0">
-
-				</button>
-				<p style="margin-top: 0; margin-bottom: 0; align-self: center" id="iconName" class="type--small mr-xsmall">
-					Select Icon
-				</p>
-			</div> -->
-
-			<!-- {#if message?.selectedIconThumbnail} -->
 			<button id="refresh" bind:this="{preview}" on:click={() => {
 						setPreview();
-					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Preview Selected</span></button>
-			<!-- {/if} -->
+					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Swap</span></button>
 		</div>
 
 		<svg id="corner" use:resize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2738,12 +2727,12 @@
 
 	#toolbar {
 		/* display: none; */
-		/* position: fixed; */
-		/* bottom: 0; */
-		/* width: 100%; */
+		position: fixed;
+		bottom: 0;
+		width: 100%;
 		min-height: 49px;
-		border-top: 1px solid #e5e5e5;
-		background-color: white;
+		/* border-top: 1px solid #e5e5e5; */
+		/* background-color: white; */
 	}
 
 	#inspect:enabled:active,
@@ -2800,7 +2789,7 @@
 
 	.previewButton {
 		padding: 8px;
-		width: 146px;
+		width: 112px;
 		margin-left: auto;
 		display: none;
 		justify-content: center;
