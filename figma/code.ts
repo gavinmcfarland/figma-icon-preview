@@ -213,11 +213,10 @@ function isInsideContainer(node, container) {
 
 var uiDimensions = {
 	width: 176 * 3,
-	height: (176 * 2 + 49) // 352
+	height: 352
 }
 
 selectedIcon = figma.currentPage.selection[0]
-setClientStorageAsync("uiSize", uiDimensions)
 // restore previous size
 figma.clientStorage.getAsync('uiSize').then(size => {
 	// if (size) figma.ui.resize(size.w, size.h);
