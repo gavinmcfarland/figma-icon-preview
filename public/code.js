@@ -107,11 +107,11 @@ var thumbnailSettings = [
         label: "Product"
     }
 ];
-function nodeIsBox(node) {
+function isBox(node) {
     return node.type === "FRAME" || node.type === "GROUP" || node.type === "COMPONENT" || node.type === "INSTANCE";
 }
 // Check size to avoid exporting too large a preview
-function nodeIsSmall(node) {
+function isSmall(node) {
     return node.height <= 256 && node.width <= 256;
 }
 var message, currentIcon, selectedIcon;
@@ -160,14 +160,23 @@ async function getThumbnailPreview(node) {
 }
 function getCanvasColor() {
     var hex = rgbToHex(figma.currentPage.backgrounds[0].color);
-    console.log(hex);
     if (hex !== "#e5e5e5") {
         return hex;
+    }
+    else {
+        return "#ffffff";
+    }
+}
+function isSquare(node) {
+    if (node.width === node.height) {
+        return node;
     }
 }
 function isIcon(node) {
     if (node) {
-        if ((node.width === node.height) && (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "GROUP")) {
+        if (isSquare(node)
+            && isSmall(node)
+            && isBox(node)) {
             return node;
         }
     }
@@ -179,9 +188,10 @@ function isInsideContainer(node, container) {
 // if (figma.command === "selected") {
 var uiDimensions = {
     width: 176 * 3,
-    height: (176 * 2 + 48)
+    height: (176 * 2 + 49) // 352
 };
 selectedIcon = figma.currentPage.selection[0];
+setClientStorageAsync("uiSize", uiDimensions);
 // restore previous size
 figma.clientStorage.getAsync('uiSize').then(size => {
     // if (size) figma.ui.resize(size.w, size.h);
@@ -190,9 +200,10 @@ figma.clientStorage.getAsync('uiSize').then(size => {
         size = uiDimensions;
     }
     if (figma.currentPage.selection.length === 1) {
-        if (nodeIsBox(figma.currentPage.selection[0])) {
-            if (nodeIsSmall(figma.currentPage.selection[0])) {
-                if (isIcon(figma.currentPage.selection[0])) {
+        if (isSmall(figma.currentPage.selection[0])) {
+            if (isBox(figma.currentPage.selection[0])) {
+                if (isSquare(figma.currentPage.selection[0])) {
+                    // if (isSmall(figma.currentPage.selection[0])) {
                     figma.showUI(__html__, size);
                     currentIcon = figma.currentPage.selection[0];
                     getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
@@ -205,26 +216,23 @@ figma.clientStorage.getAsync('uiSize').then(size => {
                         });
                     });
                 }
+                else {
+                    figma.closePlugin("Selection must be square");
+                }
             }
             else {
-                figma.notify("Frame must be smaller than 256px");
-                figma.closePlugin();
+                figma.closePlugin("Selection must be a frame, group, component or instance");
             }
         }
         else {
-            figma.notify("Selection must be a frame or group to preview");
-            figma.closePlugin();
+            figma.closePlugin("Icon must be 256px or smaller");
         }
     }
     else if (figma.currentPage.selection.length === 0) {
-        figma.showUI(__html__);
-        getThumbnails(figma.currentPage.selection[0]);
-        message = false;
-        figma.ui.postMessage(message);
+        figma.closePlugin("Select an icon");
     }
     else {
-        figma.notify("Please select one group or frame");
-        figma.closePlugin();
+        figma.closePlugin("Select one icon at a time");
     }
 });
 figma.ui.onmessage = msg => {
@@ -274,7 +282,6 @@ figma.ui.onmessage = msg => {
     }
 };
 figma.on('selectionchange', () => {
-    console.log("selection changed");
     if (figma.currentPage.selection.length === 1) {
         if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
             figma.ui.postMessage({
@@ -316,9 +323,7 @@ figma.on('selectionchange', () => {
 // Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
 // Disabled also because slows down Figma/computer
 setInterval(() => {
-    console.log("updated preview");
     if (selectedIcon) {
-        console.log("selectedIcon", selectedIcon);
         getThumbnailPreview(selectedIcon).then((thumbnail) => {
             var selectedIconThumbnail;
             if (isIcon(figma.currentPage.selection[0])) {
@@ -332,7 +337,7 @@ setInterval(() => {
                 }
             }
             getThumbnails(currentIcon).then((msg) => {
-                figma.ui.postMessage(Object.assign(Object.assign({}, msg), { selectedIconThumbnail }));
+                figma.ui.postMessage(Object.assign(Object.assign({}, msg), { selectedIconThumbnail, canvasColor: getCanvasColor() }));
             });
         });
     }

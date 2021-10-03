@@ -10,6 +10,8 @@
 	let canvas2
 	let thumbnail
 	let preview
+	let canvasColor = "#ffffff"
+	let oppositeColor;
 
 
 	function resize(node, event) {
@@ -153,6 +155,7 @@
 	// 	}
 	// })
 
+
 	async function genThumbnailImage(bytes) {
 		const canvas = document.createElement('canvas')
 		const ctx = canvas.getContext('2d')
@@ -180,6 +183,57 @@
 		return newCanvas;
 	}
 
+	function getCorrectTextColor(hex) {
+
+			/*
+			From this W3C document: http://www.webmasterworld.com/r.cgi?f=88&d=9769&url=http://www.w3.org/TR/AERT#color-contrast
+
+			Color brightness is determined by the following formula:
+			((Red value X 299) + (Green value X 587) + (Blue value X 114)) / 1000
+
+      I know this could be more compact, but I think this is easier to read/explain.
+
+			*/
+
+			var threshold = 130; /* about half of 256. Lower threshold equals more dark text on dark background  */
+
+			var hRed = hexToR(hex);
+			var hGreen = hexToG(hex);
+			var hBlue = hexToB(hex);
+
+
+			function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
+			function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
+			function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
+			function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
+
+			var cBrightness = ((hRed * 299) + (hGreen * 587) + (hBlue * 114)) / 1000;
+			if (cBrightness > threshold){return "#000000";} else { return "#ffffff";}
+	}
+
+
+
+
+		// //test colortable
+		// var colPairs = new Array("00","22","44","66","99","aa","cc","ff");
+		// for(i=0;i<colPairs.length;i++){
+		// 	for(j=0;j<colPairs.length;j++){
+		// 		for(k=0;k<colPairs.length;k++){
+		// 			//build a hexcode
+		// 			var theColor = "#"+colPairs[i]+colPairs[j]+colPairs[k];
+
+		// 			//checkf for correct textcolor in passed hexcode
+		// 			var textcolor = getCorrectTextColor(theColor);
+
+		// 			//output div
+		// 			document.write("<div style='background-color:" + theColor + ";color:"+textcolor+";' class='colorblock'>" + theColor + "</div>");
+		// 		}
+		// 		document.write("<br/>");
+		// 	}
+		// }
+
+
+
 	function createSvg(svgString) {
 		var container = document.createElement('div');
 		container.innerHTML = svgString;
@@ -196,8 +250,9 @@
 		const thumbnails = root.querySelector('#thumbnails')
 
 		if (message.canvasColor) {
-			root.style.backgroundColor = message.canvasColor
-			console.log(message.canvasColor)
+			canvasColor	= message.canvasColor
+			oppositeColor =  getCorrectTextColor(message.canvasColor)
+			// root.style.backgroundColor = message.canvasColor
 		}
 
 			// console.log(message)
@@ -224,7 +279,6 @@
 
 
 				if (message.currentIconThumbnail && message.thumbnails) {
-					console.log(message.currentIconThumbnail)
 					var canvas
 					if (message.currentIconThumbnail) {
 						canvas = createSvg(message.currentIconThumbnail)
@@ -275,181 +329,181 @@
 
 <svelte:window on:message={onLoad}/>
 
-<div class="wrapper" bind:this={root}>
+<div class="wrapper" bind:this={root} style="background-color: {canvasColor}">
 
 
 
 		<div class="preview-window">
 		<!-- Empty divs to prevent layout changing when loading thumbnails -->
 				<div class="thumbnail-wrapper">
-				<div id="thumbnails">
+				<div id="thumbnails" style="color: {oppositeColor}">
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
 					<div>
 						<div></div>
 						<div class="icon__info">
-							<p class="type--small black3"></p>
+							<p class="type--small"></p>
 							<div>
-								<p class="type--small black3"></p>
-								<p class="type--small black3"></p>
+								<p class="type--small"></p>
+								<p class="type--small"></p>
 							</div>
 						</div>
 					</div>
@@ -458,7 +512,7 @@
 		</div>
 
 		<div id="toolbar" bind:this="{toolbar}" class="p-xxsmall flex" style="justify-content: space-between;">
-			<button id="refresh" bind:this="{preview}" on:click={() => {
+			<button id="refresh" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{preview}" on:click={() => {
 						setPreview();
 					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Swap</span></button>
 		</div>
@@ -2669,8 +2723,8 @@
 	}
 
 	#thumbnails>* {
-		border-bottom: 1px solid #e5e5e5;
-		border-right: 1px solid #e5e5e5;
+		border-bottom: 1px solid rgba(194, 194, 194, 0.3);
+		border-right: 1px solid rgba(194, 194, 194, 0.3);
 		box-sizing: border-box;
 		flex-grow: 0;
 		height: var(--icon-width);
@@ -2742,16 +2796,16 @@
 
 	.icon__info {
 		position: absolute;
-		top: 16px;
-		left: 16px;
+		top: 12px;
+		left: 12px;
 		bottom: 12px;
-		right: 16px;
+		right: 12px;
 	}
 
 	.icon__info> :nth-child(1) {
 		position: absolute;
 		top: 0;
-		color: var(--black);
+		/* color: var(--black); */
 	}
 
 	.icon__info> :nth-child(2) {
@@ -2762,14 +2816,16 @@
 
 	.icon__info>*> :nth-child(1) {
 		text-align: right;
-		margin-right: -4px;
+		/* margin-right: -4px; */
+		opacity: 0.3;
 	}
 
 	.icon__info>*> :nth-child(2) {
 		position: absolute;
 		left: 0;
 		top: 0;
-		margin-left: -4px;
+		opacity: 0.3;
+		/* margin-left: -4px; */
 	}
 
 	.icon__info p {
@@ -2789,7 +2845,7 @@
 
 	.previewButton {
 		padding: 8px;
-		width: 112px;
+		width: 96px;
 		margin-left: auto;
 		display: none;
 		justify-content: center;
