@@ -13,6 +13,7 @@
 	let canvasColor = "#ffffff"
 	let oppositeColor;
 	let selectedIconThumbnail
+	let thumbnailWrapper
 
 
 	function resize(node, event) {
@@ -234,6 +235,15 @@
 		// 	}
 		// }
 
+	function postScrollPos(element) {
+		parent.postMessage( { pluginMessage: { type: 'scroll-position', pos: { top: element.scrollTop, left: element.scrollLeft } }}, '*');
+	}
+
+	function setScrollPos(element, pos) {
+		element.scrollTop = pos.top
+		element.scrollLeft = pos.left
+	}
+
 
 
 	function createSvg(svgString) {
@@ -250,6 +260,14 @@
 		message = await event.data.pluginMessage;
 
 		const thumbnails = root.querySelector('#thumbnails')
+
+		if (thumbnailWrapper && message.scrollPos) {
+			setScrollPos(thumbnailWrapper, message.scrollPos)
+		}
+
+		setInterval(()=> {
+			postScrollPos(thumbnailWrapper)
+		}, 300)
 
 		if (message.canvasColor) {
 			canvasColor	= message.canvasColor
@@ -338,9 +356,9 @@
 
 
 
-		<div class="preview-window">
+		<div bind:this={thumbnailWrapper}  class="preview-window">
 		<!-- Empty divs to prevent layout changing when loading thumbnails -->
-				<div class="thumbnail-wrapper">
+				<div  class="thumbnail-wrapper">
 				<div id="thumbnails" style="color: {oppositeColor}">
 					<div>
 						<div></div>

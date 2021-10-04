@@ -112,7 +112,7 @@ function isBox(node) {
 
 // Check size to avoid exporting too large a preview
 function isSmall(node) {
-	return node.height <= 256 && node.width <= 256
+	return node.height <= 512 && node.width <= 512
 }
 
 var message, lastSelectedIcon, imageBytes, currentIcon, selectedIcon
@@ -216,21 +216,36 @@ var uiDimensions = {
 	height: 352
 }
 
+var scrollPos = {
+	top: 0,
+	left: 0
+}
+
 selectedIcon = figma.currentPage.selection[0]
 // restore previous size
 figma.clientStorage.getAsync('uiSize').then(size => {
-	// if (size) figma.ui.resize(size.w, size.h);
-
 	if (!size) {
 		setClientStorageAsync("uiSize", uiDimensions)
 		size = uiDimensions
 	}
 
-	if (figma.currentPage.selection.length === 1) {
-		if (isSmall(figma.currentPage.selection[0])) {
-			if (isBox(figma.currentPage.selection[0])) {
-				if (isSquare(figma.currentPage.selection[0]) ) {
-					// if (isSmall(figma.currentPage.selection[0])) {
+	figma.clientStorage.getAsync('scrollPos').then((pos) => {
+		// if (size) figma.ui.resize(size.w, size.h);
+		if (!pos) {
+			setClientStorageAsync("scrollPos", scrollPos)
+			pos = scrollPos
+		}
+
+		console.log(pos)
+
+
+
+
+		if (figma.currentPage.selection.length === 1) {
+			if (isSmall(figma.currentPage.selection[0])) {
+				if (isBox(figma.currentPage.selection[0])) {
+					if (isSquare(figma.currentPage.selection[0])) {
+						// if (isSmall(figma.currentPage.selection[0])) {
 						figma.showUI(__html__, size);
 						currentIcon = figma.currentPage.selection[0]
 						getThumbnailPreview(figma.currentPage.selection[0]).then((thumbnail) => {
@@ -239,29 +254,31 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 								if (figma.currentPage.selection[0].id !== currentIcon.id) {
 									selectedIconThumbnail = thumbnail
 								}
-								figma.ui.postMessage({ ...msg, selectedIconThumbnail, canvasColor: getCanvasColor() })
+								figma.ui.postMessage({ ...msg, selectedIconThumbnail, canvasColor: getCanvasColor(), scrollPos: pos })
 							})
 						})
+					}
+					else {
+						figma.closePlugin("Selection must be square")
+
+					}
 				}
 				else {
-					figma.closePlugin("Selection must be square")
-
+					figma.closePlugin("Selection must be a frame, group, component or instance")
 				}
 			}
 			else {
-				figma.closePlugin("Selection must be a frame, group, component or instance")
+				figma.closePlugin("Icon must be 256px or smaller")
 			}
 		}
-		else {
-			figma.closePlugin("Icon must be 256px or smaller")
+		else if (figma.currentPage.selection.length === 0) {
+			figma.closePlugin("Select an icon")
 		}
-	}
-	else if (figma.currentPage.selection.length === 0) {
-		figma.closePlugin("Select an icon")
-	}
-	else {
-		figma.closePlugin("Select one icon at a time")
-	}
+		else {
+			figma.closePlugin("Select one icon at a time")
+		}
+	})
+
 })
 
 
@@ -319,6 +336,10 @@ figma.ui.onmessage = msg => {
 	if (msg.type === 'resize') {
 		figma.ui.resize(msg.size.width, msg.size.height);
 		figma.clientStorage.setAsync('uiSize', msg.size).catch(err => { });// save size
+	}
+
+	if (msg.type === 'scroll-position') {
+		figma.clientStorage.setAsync('scrollPos', msg.pos).catch(err => { });// save scroll pos
 	}
 
 };
