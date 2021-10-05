@@ -194,6 +194,20 @@ function isInsideContainer(node, container) {
 function setCurrentIcon() {
     currentIcon = figma.currentPage.selection[0];
 }
+function setPreview() {
+    selectedIcon = undefined;
+    if (selectedIcon) {
+        currentIcon = selectedIcon;
+    }
+    else {
+        currentIcon = figma.currentPage.selection[0];
+    }
+    getSelectedIconImage(selectedIcon).then((selectedImage) => {
+        getCurrentIconImage(currentIcon).then((currentImage) => {
+            figma.ui.postMessage({ thumbnails: thumbnailSettings, currentIconThumbnail: currentImage, selectedIconThumbnail: selectedImage });
+        });
+    });
+}
 selectedIcon = figma.currentPage.selection[0];
 var cachedScrollPos;
 var cachedUiSize;
@@ -299,20 +313,12 @@ async function main() {
 main();
 figma.ui.onmessage = msg => {
     if (msg.type === 'set-preview') {
-        selectedIcon = undefined;
-        if (selectedIcon) {
-            currentIcon = selectedIcon;
-        }
-        else {
-            currentIcon = figma.currentPage.selection[0];
-        }
-        getSelectedIconImage(selectedIcon).then((selectedImage) => {
-            getCurrentIconImage(currentIcon).then((currentImage) => {
-                figma.ui.postMessage({ thumbnails: thumbnailSettings, currentIconThumbnail: currentImage, selectedIconThumbnail: selectedImage });
-            });
-        });
+        setPreview();
     }
     if (msg.type === 'lock-preview') {
+        if (!msg.locked) {
+            setPreview();
+        }
         cachedPreviewLocked = msg.locked;
     }
     if (msg.type === 'resize') {
