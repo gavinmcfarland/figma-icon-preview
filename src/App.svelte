@@ -302,7 +302,7 @@
 
 
 
-				if (message.currentIconThumbnail && message.thumbnails) {
+				if (message.thumbnails) {
 					var canvas
 					if (message.currentIconThumbnail) {
 						canvas = createSvg(message.currentIconThumbnail)
@@ -311,13 +311,18 @@
 					for (let i = 0; i < message.thumbnails.length; i++) {
 						if (thumbnails.children[i]) {
 
-							let clone = canvas.cloneNode(true)
+							let clone
+							if (message.currentIconThumbnail) {
+								clone = canvas.cloneNode(true)
+								clone.style.width = message.thumbnails[i].size
+								clone.style.height = message.thumbnails[i].size
+								thumbnails.children[i].appendChild(clone)
+								thumbnails.children[i].children[0].parentNode.replaceChild(clone, thumbnails.children[i].children[0])
+							}
+							else {
+								if (thumbnails.children[i].children[0]) thumbnails.children[i].children[0].style.display = "none"
+							}
 
-							clone.style.width = message.thumbnails[i].size
-							clone.style.height = message.thumbnails[i].size
-
-							thumbnails.children[i].appendChild(clone)
-							thumbnails.children[i].children[0].parentNode.replaceChild(clone, thumbnails.children[i].children[0])
 							thumbnails.children[i].children[1].children[1].children[0].innerHTML = message.thumbnails[i].size
 
 							if (message.thumbnails[i].group) {

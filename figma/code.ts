@@ -117,20 +117,32 @@ function isSmall(node) {
 
 var message, lastSelectedIcon, imageBytes, currentIcon, selectedIcon
 
+function isChildrenVisible(node) {
+
+
+	var numberChildren = node.children.length
+	var numberChildrenHidden = 0
+	for (var i = 0; i < node.children.length; i++) {
+		var child = node.children[i]
+		if (!child.visible) numberChildrenHidden++
+	}
+
+	if (numberChildren !== numberChildrenHidden) {
+		return true
+	}
+}
 async function generateThumbnail(node, currentSize?, desiredSize?) {
 
 	var scale = desiredSize / currentSize
 	var revertScale = currentSize / desiredSize
 	// var temp = node.clone()
 	// temp.rescale(scale)
-
-	var image = await node.exportAsync({
-		format: "SVG",
-		// constraint: {
-		// 	type: "SCALE",
-		// 	value: 2 * scale
-		// }
-	})
+	var image
+	if (node.children.length > 0 && node.visible && isChildrenVisible(node)) {
+		image = await node.exportAsync({
+			format: "SVG"
+		})
+	}
 
 	// temp.remove()
 
@@ -146,12 +158,10 @@ async function getThumbnails(node, refresh?) {
 		// }
 
 		message = {
-			thumbnail: {},
-			thumbnails: [],
-			name: ""
+			thumbnails: []
 		}
 
-		message.currentIconThumbnail = await generateThumbnail(node, node.width, 84)
+		message.currentIconThumbnail = await generateThumbnail(node)
 
 		// Generate thumbnail previews
 		for (let i = 0; i < thumbnailSettings.length; i++) {
@@ -254,8 +264,6 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 			pos = scrollPos
 		}
 
-		console.log(size)
-
 		if (figma.currentPage.selection.length === 1) {
 			if (isSmall(figma.currentPage.selection[0])) {
 				if (isBox(figma.currentPage.selection[0])) {
@@ -348,7 +356,7 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 
 		debounce(function () {
 			setInterval(() => {
-				if (currentIcon) {
+				if (currentIcon && figma.getNodeById(currentIcon.id)) {
 
 					// getThumbnailPreview(selectedIcon).then((thumbnail) => {
 					// 	var selectedIconThumbnail
@@ -372,6 +380,9 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 					// })
 
 
+				}
+				else {
+					figma.ui.postMessage({ currentIconThumnail: undefined, thumbnails: thumbnailSettings, canvasColor: getCanvasColor() })
 				}
 
 
@@ -435,7 +446,6 @@ figma.ui.onmessage = msg => {
 			currentIcon = selectedIcon
 		}
 		else {
-			console.log(currentIcon)
 			currentIcon = figma.currentPage.selection[0]
 		}
 
