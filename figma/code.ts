@@ -132,8 +132,6 @@ async function generateThumbnail(node, currentSize?, desiredSize?) {
 		// }
 	})
 
-	image = String.fromCharCode.apply(null, image)
-
 	// temp.remove()
 
 	return image
@@ -205,8 +203,25 @@ function isIcon(node) {
 }
 
 function isInsideContainer(node, container) {
-	return container.findOne(n => n.id === node.id)
+	if (container && node) {
+		return container.findOne(n => n.id === node.id)
+	}
 }
+
+function debounce(func, wait, immediate?) {
+	var timeout;
+	return function () {
+		var context = this, args = arguments;
+		var later = function () {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	};
+};
 
 // Show preview when plugin runs
 // if (figma.command === "selected") {
@@ -222,8 +237,11 @@ var scrollPos = {
 }
 
 selectedIcon = figma.currentPage.selection[0]
+var onSelChgthumbnail;
+
 // restore previous size
 figma.clientStorage.getAsync('uiSize').then(size => {
+
 	if (!size) {
 		setClientStorageAsync("uiSize", uiDimensions)
 		size = uiDimensions
@@ -236,10 +254,7 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 			pos = scrollPos
 		}
 
-		console.log(pos)
-
-
-
+		console.log(size)
 
 		if (figma.currentPage.selection.length === 1) {
 			if (isSmall(figma.currentPage.selection[0])) {
@@ -277,7 +292,132 @@ figma.clientStorage.getAsync('uiSize').then(size => {
 		else {
 			figma.closePlugin("Select one icon at a time")
 		}
+
+
+
+		figma.on('selectionchange', () => {
+
+			if (figma.currentPage.selection.length === 1) {
+				if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
+					onSelChgthumbnail = undefined
+					figma.ui.postMessage({
+						selectedIconThumbnail: undefined
+					})
+				}
+				else {
+					if (isIcon(figma.currentPage.selection[0])) {
+						selectedIcon = figma.currentPage.selection[0]
+						if (figma.currentPage.selection.length === 1) {
+							if (isIcon(figma.currentPage.selection[0])) {
+								getThumbnailPreview(selectedIcon).then((thumbnail) => {
+
+									var selectedIconThumbnail
+									if (figma.currentPage.selection[0].id !== currentIcon.id) {
+										selectedIconThumbnail = thumbnail
+										onSelChgthumbnail = thumbnail
+									}
+									else {
+										selectedIconThumbnail = undefined
+										onSelChgthumbnail = undefined
+									}
+									figma.ui.postMessage({
+										selectedIconThumbnail
+									})
+								})
+							}
+						}
+					}
+					else {
+						onSelChgthumbnail = undefined
+					}
+				}
+
+			}
+			else {
+				onSelChgthumbnail = undefined
+				// getThumbnailPreview(selectedIcon).then((thumbnail) => {
+				figma.ui.postMessage({
+					selectedIconThumbnail: undefined
+				})
+				// })
+			}
+		})
+
+		// Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
+		// Disabled also because slows down Figma/computer
+
+		debounce(function () {
+			setInterval(() => {
+				if (currentIcon) {
+
+					// getThumbnailPreview(selectedIcon).then((thumbnail) => {
+					// 	var selectedIconThumbnail
+					// 	if (isIcon(figma.currentPage.selection[0])) {
+					// 		if (figma.currentPage.selection.length === 1) {
+					// 			if (currentIcon) {
+					// 				if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
+					// 					selectedIconThumbnail = undefined
+					// 				}
+					// 				else if (figma.currentPage.selection[0].id !== currentIcon.id) {
+					// 					selectedIconThumbnail = thumbnail
+					// 				}
+					// 			}
+
+					// 		}
+					// 	}
+
+					getThumbnails(currentIcon).then((msg) => {
+						figma.ui.postMessage({ ...msg, selectedIconThumbnail: onSelChgthumbnail, canvasColor: getCanvasColor() })
+					})
+					// })
+
+
+				}
+
+
+
+			}, 600)
+		}, 2000)()
+
+
+
+		// setInterval(() => {
+		// 	if (currentIcon) {
+
+		// 		// getThumbnailPreview(selectedIcon).then((thumbnail) => {
+		// 		// 	var selectedIconThumbnail
+		// 		// 	if (isIcon(figma.currentPage.selection[0])) {
+		// 		// 		if (figma.currentPage.selection.length === 1) {
+		// 		// 			if (currentIcon) {
+		// 		// 				if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
+		// 		// 					selectedIconThumbnail = undefined
+		// 		// 				}
+		// 		// 				else if (figma.currentPage.selection[0].id !== currentIcon.id) {
+		// 		// 					selectedIconThumbnail = thumbnail
+		// 		// 				}
+		// 		// 			}
+
+		// 		// 		}
+		// 		// 	}
+
+		// 		getThumbnails(currentIcon).then((msg) => {
+		// 			figma.ui.postMessage({ ...msg, selectedIconThumbnail: onSelChgthumbnail, canvasColor: getCanvasColor() })
+		// 		})
+		// 		// })
+
+
+		// 	}
+
+
+
+		// }, 500)
+
+
+
+
 	})
+
+}).catch(() => {
 
 })
 
@@ -289,10 +429,13 @@ figma.ui.onmessage = msg => {
 
 	// Manual refresh
 	if (msg.type === 'set-preview') {
+		selectedIcon = undefined
+		onSelChgthumbnail = undefined
 		if (selectedIcon) {
 			currentIcon = selectedIcon
 		}
 		else {
+			console.log(currentIcon)
 			currentIcon = figma.currentPage.selection[0]
 		}
 
@@ -343,82 +486,3 @@ figma.ui.onmessage = msg => {
 	}
 
 };
-
-figma.on('selectionchange', () => {
-
-	if (figma.currentPage.selection.length === 1) {
-		if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
-			figma.ui.postMessage({
-				selectedIconThumbnail: undefined
-			})
-		}
-		else {
-			if (figma.currentPage.selection[0].width === figma.currentPage.selection[0].height) {
-				selectedIcon = figma.currentPage.selection[0]
-			}
-			if (figma.currentPage.selection[0].width === figma.currentPage.selection[0].height) {
-				if (figma.currentPage.selection.length === 1) {
-					if (isIcon(figma.currentPage.selection[0])) {
-						getThumbnailPreview(selectedIcon).then((thumbnail) => {
-							var selectedIconThumbnail
-							if (figma.currentPage.selection[0].id !== currentIcon.id) {
-								selectedIconThumbnail = thumbnail
-							}
-							else {
-								selectedIconThumbnail = undefined
-							}
-							figma.ui.postMessage({
-								selectedIconThumbnail
-							})
-						})
-					}
-				}
-			}
-		}
-
-	}
-	else {
-		// getThumbnailPreview(selectedIcon).then((thumbnail) => {
-			figma.ui.postMessage({
-				selectedIconThumbnail: undefined
-			})
-		// })
-	}
-})
-
-
-// Update live preview. Disabled for now because no way to prevent Figma from hiding canvas UI when node is changed.
-// Disabled also because slows down Figma/computer
-setInterval(() => {
-
-	if (selectedIcon) {
-
-		getThumbnailPreview(selectedIcon).then((thumbnail) => {
-			var selectedIconThumbnail
-			if (isIcon(figma.currentPage.selection[0])) {
-				if (figma.currentPage.selection.length === 1) {
-					if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
-						selectedIconThumbnail = undefined
-					}
-					else if (figma.currentPage.selection[0].id !== currentIcon.id) {
-						selectedIconThumbnail = thumbnail
-					}
-				}
-			}
-
-			getThumbnails(currentIcon).then((msg) => {
-				figma.ui.postMessage({ ...msg, selectedIconThumbnail, canvasColor: getCanvasColor() })
-			})
-		})
-
-
-	}
-
-	// if (currentIcon) {
-	// 	getThumbnails(currentIcon).then((msg) => {
-	// 		figma.ui.postMessage({ ...msg })
-	// 	})
-	// }
-
-
-}, 300)
