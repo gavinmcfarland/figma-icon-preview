@@ -200,7 +200,9 @@ function setPreview() {
         currentIcon = selectedIcon;
     }
     else {
-        currentIcon = figma.currentPage.selection[0];
+        if (figma.currentPage.selection.length === 0) {
+            currentIcon = figma.currentPage.selection[0];
+        }
     }
     getSelectedIconImage(selectedIcon).then((selectedImage) => {
         getCurrentIconImage(currentIcon).then((currentImage) => {

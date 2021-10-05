@@ -6,6 +6,7 @@
 	export const name: string = ''
 	let root;
 	let toolbar;
+	let actionbar;
 	let message
 	let canvas2
 	let thumbnail
@@ -259,6 +260,21 @@
 		element.scrollLeft = pos.left
 	}
 
+	function hexToRgba(hex, opacity?) {
+		if (hex) {
+			var c;
+			if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+				c= hex.substring(1).split('');
+				if(c.length== 3){
+					c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+				}
+				c= '0x'+c.join('');
+				return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',' + opacity + ')';
+			}
+			throw new Error('Bad Hex');
+		}
+	}
+
 
 
 	function createSvg(svgString) {
@@ -379,7 +395,24 @@
 
 <div class="wrapper" bind:this={root} style="background-color: {canvasColor}">
 
+		<div id="actionbar" bind:this="{actionbar}" class="p-xxsmall flex" style="justify-content: space-between;">
+			<button id="refresh" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{preview}" on:click={() => {
+						setPreview();
+					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Swap</span></button>
+			<button id="lock" style="color: {oppositeColor}; --hover-color: {hexToRgba(oppositeColor, 0.06)};" bind:this="{lockButton}" on:click={() => {
+						lockPreview();
+					}} class="lockButton button button--tertiary"><span style="white-space: nowrap;">
+						{#if previewLocked}<svg width="8" height="10" viewBox="0 0 8 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 2.5V4H2.5V2.5C2.5 1.67157 3.17157 1 4 1C4.82843 1 5.5 1.67157 5.5 2.5ZM1.5 4V2.5C1.5 1.11929 2.61929 0 4 0C5.38071 0 6.5 1.11929 6.5 2.5V4H7C7.27614 4 7.5 4.22386 7.5 4.5V9.5C7.5 9.77614 7.27614 10 7 10H1C0.723858 10 0.5 9.77614 0.5 9.5V4.5C0.5 4.22386 0.723858 4 1 4H1.5Z" fill="{oppositeColor}" fill-opacity="0.8"/>
+</svg>
+						{:else}
+<svg width="10" height="11" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M6 4V5H6.5C6.77614 5 7 5.22386 7 5.5V10.5C7 10.7761 6.77614 11 6.5 11H0.5C0.223858 11 0 10.7761 0 10.5V5.5C0 5.22386 0.223858 5 0.5 5H5V2.5C5 1.11929 6.11929 0 7.5 0C8.88071 0 10 1.11929 10 2.5V4H9V2.5C9 1.67157 8.32843 1 7.5 1C6.67157 1 6 1.67157 6 2.5V4Z" fill="{oppositeColor}" fill-opacity="0.8"/>
+</svg>
+						{/if}
 
+						</span></button>
+		</div>
 
 		<div bind:this={thumbnailWrapper}  class="preview-window">
 		<!-- Empty divs to prevent layout changing when loading thumbnails -->
@@ -559,7 +592,7 @@
 				</div>
 		</div>
 
-		<div id="toolbar" bind:this="{toolbar}" class="p-xxsmall flex" style="justify-content: space-between;">
+		<!-- <div id="toolbar" bind:this="{toolbar}" class="p-xxsmall flex" style="justify-content: space-between;">
 			<button id="refresh" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{preview}" on:click={() => {
 						setPreview();
 					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Swap</span></button>
@@ -567,12 +600,12 @@
 			<button id="lock" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{lockButton}" on:click={() => {
 						lockPreview();
 					}} class="lockButton button button--secondary"><span style="white-space: nowrap;">{previewLocked ? "Locked" : "Lock"}</span></button>
-		</div>
+		</div> -->
 
 		<svg id="corner" use:resize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<path d="M13 2L2 13" stroke="black" stroke-opacity="0.24" stroke-linecap="round"/>
-		<path d="M13 6.5L6.5 13" stroke="black" stroke-opacity="0.24" stroke-linecap="round"/>
-		<path d="M13 11L11 13" stroke="black" stroke-opacity="0.24" stroke-linecap="round"/>
+		<path d="M13 2L2 13" stroke="{oppositeColor}" stroke-opacity="0.24" stroke-linecap="round"/>
+		<path d="M13 6.5L6.5 13" stroke="{oppositeColor}" stroke-opacity="0.24" stroke-linecap="round"/>
+		<path d="M13 11L11 13" stroke="{oppositeColor}" stroke-opacity="0.24" stroke-linecap="round"/>
 		</svg>
 </div>
 
@@ -1579,6 +1612,18 @@
 	}
 
 
+	#actionbar {
+		position: fixed;
+		top: 0;
+		width: 100%;
+		min-height: 49px;
+		user-select: none;
+		pointer-events: none;
+		z-index: 999;
+		/* border-top: 1px solid #e5e5e5; */
+		/* background-color: white; */
+	}
+
 
 	#toolbar {
 		/* display: none; */
@@ -1657,10 +1702,16 @@
 
 	.lockButton {
 		padding: 8px;
-		width: 72px;
+		width: 32px;
 		margin-left: auto;
 		justify-content: center;
 		pointer-events: auto;
+		background-color: transparent;
+		border-radius: 2px;
+	}
+
+	.lockButton:hover {
+		background-color: var(--hover-color);
 	}
 
 	.show {

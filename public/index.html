@@ -158,6 +158,12 @@ var app = (function () {
             block.i(local);
         }
     }
+
+    const globals = (typeof window !== 'undefined'
+        ? window
+        : typeof globalThis !== 'undefined'
+            ? globalThis
+            : global);
     function mount_component(component, target, anchor, customElement) {
         const { fragment, on_mount, on_destroy, after_update } = component.$$;
         fragment && fragment.m(target, anchor);
@@ -319,13 +325,6 @@ var app = (function () {
         else
             dispatch_dev('SvelteDOMSetAttribute', { node, attribute, value });
     }
-    function set_data_dev(text, data) {
-        data = '' + data;
-        if (text.wholeText === data)
-            return;
-        dispatch_dev('SvelteDOMSetData', { node: text, data });
-        text.data = data;
-    }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
             if (!~keys.indexOf(slot_key)) {
@@ -383,215 +382,309 @@ var app = (function () {
     var css_248z$1 = "html {\n\theight: 100%;\n}\nbody {\n\theight: 100%;\n}\n\n.field-group {\n\tdisplay: flex;\n\tgap: var(--size-400);\n}\n\n.field-group > * {\n\tflex-grow: 1;\n\tflex-basis: 100%;\n}\n/* Reset */\nbutton {\n\tfont: inherit;\n}\n\ntable {\n\tborder-spacing: 0;\n}\n\ntd {\n\tpadding: 0;\n}\n\n* {\n\tbox-sizing: border-box;\n\tpadding: 0;\n}\n\nbody {\n\tfont-family: Inter, sans-serif;\n\tfont-size: 11px;\n\tline-height: normal;\n\tpadding: 0;\n\tmargin: 0;\n}\nselect {\n\tfont: inherit;\n}\ninput {\n\tborder: none;\n\tfont: inherit;\n}\n\ninput:focus {\n\tborder: none;\n\toutline: none;\n}\n\n/* Hide arrows from input */\n/* Chrome, Safari, Edge, Opera */\ninput::-webkit-outer-spin-button,\ninput::-webkit-inner-spin-button {\n\t-webkit-appearance: none;\n\tmargin: 0;\n}\n\n/* Firefox */\ninput[type=\"number\"] {\n\t-moz-appearance: textfield;\n}\n\n:root {\n\t--color-blue: #18a0fb;\n\t--color-black-10: rgba(0, 0, 0, 0.1);\n\t--color-black-30: rgba(0, 0, 0, 0.3);\n\t--color-black-80: rgba(0, 0, 0, 0.8);\n\t--color-black-100: #000;\n\n\t--size-0: 0px;\n\t--size-50: 4px;\n\t--size-75: 6px;\n\t--size-100: 8px;\n\t--size-125: 10px;\n\t--size-150: 12px;\n\t--size-175: 14px;\n\t--size-200: 16px;\n\t--size-300: 24px;\n\t--size-400: 32px;\n\t--size-500: 40px;\n\t--size-600: 48px;\n\t--size-800: 64px;\n\t--size-1000: 80px;\n\n\t--border-radius-25: 2px;\n\t--border-radius-50: 4px;\n\t--border-radius-75: 6px;\n\t--border-radius-100: 8px;\n\t--border-radius-125: 10px;\n\t--border-radius-200: 16px;\n\t--border-radius-300: 24px;\n\t--border-radius-400: 32px;\n\t--border-radius-500: 40px;\n\t--border-radius-600: 48px;\n\t--border-radius-800: 64px;\n\t--border-radius-1000: 80px;\n}\n";
     styleInject(css_248z$1);
 
-    var css_248z = "*{box-sizing:border-box}#corner{position:absolute;right:0px;bottom:1px;cursor:nwse-resize}body:hover #corner{display:block}.show{display:block}#thumbnail{margin-right:8px}#thumbnail canvas{width:16px !important;height:16px !important}.wrapper{display:flex;flex-direction:column;margin-right:-1px;margin-bottom:-1px}*{box-sizing:border-box}html{height:calc(100% - 1px);position:relative}body{padding:0;margin:0;font-family:Inter, sans-serif;font-size:11px;color:var(--black);position:absolute;top:0;bottom:0;left:0;right:0;overflow:hidden;box-shadow:0 0px 14px rgba(0, 0, 0, 0.15),\n\t\t\t0 0 0 0.5px rgba(0, 0, 0, 0.1);border-bottom-left-radius:2px;border-bottom-right-radius:2px}.wrapper{height:100%}.preview-window{overflow-y:scroll}.thumbnail-wrapper{}#thumbnails{display:flex;flex-wrap:wrap}#thumbnails>*{scroll-snap-align:start}:root{--blue:#18a0fb;--purple:#7b61ff;--hot-pink:#ff00ff;--green:#1bc47d;--red:#f24822;--yellow:#ffeb00;--black:#000000;--black8:rgba(0, 0, 0, 0.8);--black8-opaque:#333333;--black3:rgba(0, 0, 0, 0.3);--black3-opaque:#b3b3b3;--white:#ffffff;--white8:rgba(255, 255, 255, 0.8);--white4:rgba(255, 255, 255, 0.4);--grey:#f0f0f0;--silver:#e5e5e5;--hud:#222222;--toolbar:#2c2c2c;--black1:rgba(0, 0, 0, 0.1);--blue3:rgba(24, 145, 251, 0.3);--purple4:rgba(123, 97, 255, 0.4);--hover-fill:rgba(0, 0, 0, 0.06);--selection-a:#daebf7;--selection-b:#edf5fa;--white2:rgba(255, 255, 255, 0.2);--font-stack:'Inter', sans-serif;--font-size-xsmall:11px;--font-size-small:12px;--font-size-large:13px;--font-size-xlarge:14px;--font-weight-normal:400;--font-weight-medium:500;--font-weight-bold:600;--font-line-height:16px;--font-line-height-large:24px;--font-letter-spacing-pos-xsmall:0.005em;--font-letter-spacing-neg-xsmall:0.01em;--font-letter-spacing-pos-small:0;--font-letter-spacing-neg-small:0.005em;--font-letter-spacing-pos-large:-0.0025em;--font-letter-spacing-neg-large:0.0025em;--font-letter-spacing-pos-xlarge:-0.001em;--font-letter-spacing-neg-xlarge:-0.001em;--border-radius-small:2px;--border-radius-med:5px;--border-radius-large:6px;--shadow-hud:0 5px 17px rgba(0, 0, 0, 0.2),\n\t\t\t0 2px 7px rgba(0, 0, 0, 0.15);--shadow-floating-window:0 2px 14px rgba(0, 0, 0, 0.15);--size-xxxsmall:4px;--size-xxsmall:8px;--size-xsmall:16px;--size-small:24px;--size-medium:32px;--size-large:40px;--size-xlarge:48px;--size-xxlarge:64px;--size-xxxlarge:80px}*{box-sizing:border-box}body{position:relative;box-sizing:border-box;font-family:'Inter', sans-serif;margin:0;padding:0}@font-face{font-family:'Inter';font-weight:400;font-style:normal;src:url('https://rsms.me/inter/font-files/Inter-Regular.woff2?v=3.7') format('woff2'),\n\t\t\turl('https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.7') format('woff')}@font-face{font-family:'Inter';font-weight:500;font-style:normal;src:url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7') format('woff2'),\n\t\t\turl('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7') format('woff')}@font-face{font-family:'Inter';font-weight:600;font-style:normal;src:url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7') format('woff2'),\n\t\t\turl('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7') format('woff')}.p-xxxsmall{padding:var(--size-xxxsmall)}.p-xxsmall{padding:var(--size-xxsmall)}.p-xsmall{padding:var(--size-xsmall)}.p-small{padding:var(--size-small)}.p-medium{padding:var(--size-medium)}.p-large{padding:var(--size-large)}.p-xlarge{padding:var(--size-xlarge)}.p-xxlarge{padding:var(--size-xxlarge)}.p-huge{padding:var(--size-xxxlarge)}.pt-xxxsmall{padding-top:var(--size-xxxsmall)}.pt-xxsmall{padding-top:var(--size-xxsmall)}.pt-xsmall{padding-top:var(--size-xsmall)}.pt-small{padding-top:var(--size-small)}.pt-medium{padding-top:var(--size-medium)}.pt-large{padding-top:var(--size-large)}.pt-xlarge{padding-top:var(--size-xlarge)}.pt-xxlarge{padding-top:var(--size-xxlarge)}.pt-huge{padding-top:var(--size-xxxlarge)}.pr-xxxsmall{padding-right:var(--size-xxxsmall)}.pr-xxsmall{padding-right:var(--size-xxsmall)}.pr-xsmall{padding-right:var(--size-xsmall)}.pr-small{padding-right:var(--size-small)}.pr-medium{padding-right:var(--size-medium)}.pr-large{padding-right:var(--size-large)}.pr-xlarge{padding-right:var(--size-xlarge)}.pr-xxlarge{padding-right:var(--size-xxlarge)}.pr-huge{padding-right:var(--size-xxxlarge)}.pb-xxxsmall{padding-bottom:var(--size-xxxsmall)}.pb-xxsmall{padding-bottom:var(--size-xxsmall)}.pb-xsmall{padding-bottom:var(--size-xsmall)}.pb-small{padding-bottom:var(--size-small)}.pb-medium{padding-bottom:var(--size-medium)}.pb-large{padding-bottom:var(--size-large)}.pb-xlarge{padding-bottom:var(--size-xlarge)}.pb-xxlarge{padding-bottom:var(--size-xxlarge)}.pb-huge{padding-bottom:var(--size-xxxlarge)}.pl-xxxsmall{padding-left:var(--size-xxxsmall)}.pl-xxsmall{padding-left:var(--size-xxsmall)}.pl-xsmall{padding-left:var(--size-xsmall)}.pl-small{padding-left:var(--size-small)}.pl-medium{padding-left:var(--size-medium)}.pl-large{padding-left:var(--size-large)}.pl-xlarge{padding-left:var(--size-xlarge)}.pl-xxlarge{padding-left:var(--size-xxlarge)}.pl-huge{padding-left:var(--size-xxxlarge)}.m-xxxsmall{margin:var(--size-xxxsmall)}.m-xxsmall{margin:var(--size-xxsmall)}.m-xsmall{margin:var(--size-xsmall)}.m-small{margin:var(--size-small)}.m-medium{margin:var(--size-medium)}.m-large{margin:var(--size-large)}.m-xlarge{margin:var(--size-xlarge)}.m-xxlarge{margin:var(--size-xxlarge)}.m-huge{margin:var(--size-xxxlarge)}.mt-xxxsmall{margin-top:var(--size-xxxsmall)}.mt-xxsmall{margin-top:var(--size-xxsmall)}.mt-xsmall{margin-top:var(--size-xsmall)}.mt-small{margin-top:var(--size-small)}.mt-medium{margin-top:var(--size-medium)}.mt-large{margin-top:var(--size-large)}.mt-xlarge{margin-top:var(--size-xlarge)}.mt-xxlarge{margin-top:var(--size-xxlarge)}.mt-huge{margin-top:var(--size-xxxlarge)}.mr-xxxsmall{margin-right:var(--size-xxxsmall)}.mr-xxsmall{margin-right:var(--size-xxsmall)}.mr-xsmall{margin-right:var(--size-xsmall)}.mr-small{margin-right:var(--size-small)}.mr-medium{margin-right:var(--size-medium)}.mr-large{margin-right:var(--size-large)}.mr-xlarge{margin-right:var(--size-xlarge)}.mr-xxlarge{margin-right:var(--size-xxlarge)}.mr-huge{margin-right:var(--size-xxxlarge)}.mb-xxxsmall{margin-bottom:var(--size-xxxsmall)}.mb-xxsmall{margin-bottom:var(--size-xxsmall)}.mb-xsmall{margin-bottom:var(--size-xsmall)}.mb-small{margin-bottom:var(--size-small)}.mb-medium{margin-bottom:var(--size-medium)}.mb-large{margin-bottom:var(--size-large)}.mb-xlarge{margin-bottom:var(--size-xlarge)}.mb-xxlarge{margin-bottom:var(--size-xxlarge)}.mb-huge{margin-bottom:var(--size-xxxlarge)}.ml-xxxsmall{margin-left:var(--size-xxxsmall)}.ml-xxsmall{margin-left:var(--size-xxsmall)}.ml-xsmall{margin-left:var(--size-xsmall)}.ml-small{margin-left:var(--size-small)}.ml-medium{margin-left:var(--size-medium)}.ml-large{margin-left:var(--size-large)}.ml-xlarge{margin-left:var(--size-xlarge)}.ml-xxlarge{margin-left:var(--size-xxlarge)}.ml-huge{margin-left:var(--size-xxxlarge)}.hidden{display:none}.inline{display:inline}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.column{flex-direction:column}.column-reverse{flex-direction:column-reverse}.row{flex-direction:row}.row-reverse{flex-direction:row-reverse}.flex-wrap{flex-wrap:wrap}.flex-wrap-reverse{flex-wrap:wrap-reverse}.flex-no-wrap{flex-wrap:nowrap}.flex-shrink{flex-shrink:1}.flex-no-shrink{flex-shrink:0}.flex-grow{flex-grow:1}.flex-no-grow{flex-grow:0}.justify-content-start{justify-content:flex-start}.justify-content-end{justify-content:flex-end}.justify-content-center{justify-content:center}.justify-content-between{justify-content:space-between}.justify-content-around{justify-content:space-around}.align-items-start{align-items:flex-start}.align-items-end{align-items:flex-end}.align-items-center{align-items:center}.align-items-stretch{align-items:stretch}.align-content-start{align-content:flex-start}.align-content-end{align-content:flex-end}.align-content-center{align-content:center}.align-content-stretch{align-content:stretch}.align-self-start{align-self:flex-start}.align-self-end{align-items:flex-end}.align-self-center{align-self:center}.align-self-stretch{align-self:stretch}.button{display:flex;align-items:center;border-radius:var(--border-radius-large);color:var(--white);flex-shrink:0;font-family:var(--font-stack);font-size:var(--font-size-xsmall);font-weight:var(--font-weight-medium);letter-spacing:var(--font-letter-spacing-neg-small);line-height:var(--font-line-height);height:var(--size-medium);padding:0 var(--size-xsmall) 0 var(--size-xsmall);text-decoration:none;outline:none;border:2px solid transparent;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.button--primary{background-color:var(--blue)}.button--primary:enabled:active,.button--primary:enabled:focus{border:2px solid var(--black3)}.button--primary:disabled{background-color:var(--black3)}.button--primary-destructive{background-color:var(--red)}.button--primary-destructive:enabled:active,.button--primary-destructive:enabled:focus{border:2px solid var(--black3)}.button--primary-destructive:disabled{opacity:0.3}.button--secondary,.button--secondary-destructive{background-color:var(--white);border:1px solid var(--black8);color:var(--black8);padding:0 calc(var(--size-xsmall) + 1px) 0 calc(var(--size-xsmall) + 1px);letter-spacing:var(--font-letter-spacing-pos-small)}.button--secondary:enabled:active,.button--secondary-destructive:enabled:active,.button--secondary-destructive:enabled:focus{border:2px solid var(--blue);padding:0 var(--size-xsmall) 0 var(--size-xsmall)}.button--secondary:disabled,.button--secondary-destructive:disabled{border:1px solid var(--black3);color:var(--black3)}.button--secondary-destructive{border-color:var(--red);color:var(--red)}.button--secondary-destructive:disabled{background-color:var(--white)}.button--secondary-destructive:enabled:active,.button--secondary-destructive:enabled:focus{border:2px solid var(--red);padding:0 var(--size-xsmall) 0 var(--size-xsmall)}.button--secondary-destructive:disabled{border:1px solid var(--red);background-color:var(--white);color:var(--red);opacity:0.4}.button--tertiary,.button--tertiary-destructive{border:1px solid transparent;color:var(--blue);padding:0;font-weight:var(--font-weight-normal);letter-spacing:var(--font-letter-spacing-pos-small);cursor:pointer}.button--tertiary:enabled:focus,.button--tertiary-destructive:enabled:focus{text-decoration:underline}.button--tertiary:disabled,.button--tertiary-destructive:disabled{cursor:default;color:var(--black3)}.button--tertiary-destructive{color:var(--red)}.button--tertiary-destructive:enabled:focus{text-decoration:underline}.button--tertiary-destructive:disabled{opacity:0.4}.type{font-family:var(--font-stack);font-size:var(--font-size-xsmall);font-weight:var(--font-weight-normal);line-height:var(--font-line-height);letter-spacing:var(--font-letter-spacing-pos-xsmall)}.type--small{font-size:var(--font-size-small);letter-spacing:var(--font-letter-spacing-pos-small)}.type--large{font-size:var(--font-size-large);line-height:var(--font-line-height-large);letter-spacing:var(--font-letter-spacing-pos-large)}.type--xlarge{font-size:var(--font-size-xlarge);line-height:var(--font-line-height-large);letter-spacing:var(--font-letter-spacing-pos-xlarge)}.type--medium{font-weight:var(--font-weight-medium)}.type--bold{font-weight:var(--font-weight-bold)}.type--inverse{letter-spacing:var(--font-letter-spacing-neg-xsmall)}.type--inverse+.type--small{letter-spacing:var(--font-letter-spacing-neg-small)}.type--inverse+.type--large{letter-spacing:var(--font-letter-spacing-neg-large)}.type--inverse+.type--xlarge{letter-spacing:var(--font-letter-spacing-neg-xlarge)}.type--inline{display:inline-block}.wrapper{}:root{--icon-width:176px}html{position:relative}#thumbnails{display:flex}#thumbnails>*{border-bottom:1px solid rgba(194, 194, 194, 0.3);border-right:1px solid rgba(194, 194, 194, 0.3);box-sizing:border-box;flex-grow:0;height:var(--icon-width);display:grid;place-items:center;position:relative;float:left;width:100%}.preview-window{-ms-scroll-snap-type:y mandatory;scroll-snap-type:y mandatory}@media(max-width: 319px){}@media(min-width: 320px){#thumbnails>*{width:calc(100% / 2)}}@media(min-width: 520px){#thumbnails>*{width:calc(100% / 3)}}@media(min-width: 740px){#thumbnails>*{width:calc(100% / 4)}}@media(min-width: 920px){#thumbnails>*{width:calc(100% / 5)}}@media(min-width: 1220px){#thumbnails>*{width:calc(100% / 6)}}@media(min-width: 1580px){#thumbnails>*{width:calc(100% / 7)}}#toolbar{position:fixed;bottom:0;width:100%;min-height:49px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none}#inspect:enabled:active,#inspect:enabled:focus{border:2px solid var(--blue)}.icon__info{position:absolute;top:12px;left:12px;bottom:12px;right:12px}.icon__info>:nth-child(1){position:absolute;top:0}.icon__info>:nth-child(2){position:absolute;bottom:0;width:100%}.icon__info>*>:nth-child(1){text-align:right;opacity:0.5}.icon__info>*>:nth-child(2){position:absolute;left:0;top:0;opacity:0.5}.icon__info p{margin-bottom:0;margin-top:0}.black3{color:var(--black3)}.selectIcon{height:calc(100% - 48px);display:none;place-items:center}.previewButton{padding:8px;width:88px;margin-left:auto;display:none;justify-content:center;pointer-events:auto}.lockButton{padding:8px;width:72px;margin-left:auto;justify-content:center;pointer-events:auto}.show{display:flex}";
+    var css_248z = "*{box-sizing:border-box}#corner{position:absolute;right:0px;bottom:1px;cursor:nwse-resize}body:hover #corner{display:block}.show{display:block}#thumbnail{margin-right:8px}#thumbnail canvas{width:16px !important;height:16px !important}.wrapper{display:flex;flex-direction:column;margin-right:-1px;margin-bottom:-1px}*{box-sizing:border-box}html{height:calc(100% - 1px);position:relative}body{padding:0;margin:0;font-family:Inter, sans-serif;font-size:11px;color:var(--black);position:absolute;top:0;bottom:0;left:0;right:0;overflow:hidden;box-shadow:0 0px 14px rgba(0, 0, 0, 0.15),\n\t\t\t0 0 0 0.5px rgba(0, 0, 0, 0.1);border-bottom-left-radius:2px;border-bottom-right-radius:2px}.wrapper{height:100%}.preview-window{overflow-y:scroll}.thumbnail-wrapper{}#thumbnails{display:flex;flex-wrap:wrap}#thumbnails>*{scroll-snap-align:start}:root{--blue:#18a0fb;--purple:#7b61ff;--hot-pink:#ff00ff;--green:#1bc47d;--red:#f24822;--yellow:#ffeb00;--black:#000000;--black8:rgba(0, 0, 0, 0.8);--black8-opaque:#333333;--black3:rgba(0, 0, 0, 0.3);--black3-opaque:#b3b3b3;--white:#ffffff;--white8:rgba(255, 255, 255, 0.8);--white4:rgba(255, 255, 255, 0.4);--grey:#f0f0f0;--silver:#e5e5e5;--hud:#222222;--toolbar:#2c2c2c;--black1:rgba(0, 0, 0, 0.1);--blue3:rgba(24, 145, 251, 0.3);--purple4:rgba(123, 97, 255, 0.4);--hover-fill:rgba(0, 0, 0, 0.06);--selection-a:#daebf7;--selection-b:#edf5fa;--white2:rgba(255, 255, 255, 0.2);--font-stack:'Inter', sans-serif;--font-size-xsmall:11px;--font-size-small:12px;--font-size-large:13px;--font-size-xlarge:14px;--font-weight-normal:400;--font-weight-medium:500;--font-weight-bold:600;--font-line-height:16px;--font-line-height-large:24px;--font-letter-spacing-pos-xsmall:0.005em;--font-letter-spacing-neg-xsmall:0.01em;--font-letter-spacing-pos-small:0;--font-letter-spacing-neg-small:0.005em;--font-letter-spacing-pos-large:-0.0025em;--font-letter-spacing-neg-large:0.0025em;--font-letter-spacing-pos-xlarge:-0.001em;--font-letter-spacing-neg-xlarge:-0.001em;--border-radius-small:2px;--border-radius-med:5px;--border-radius-large:6px;--shadow-hud:0 5px 17px rgba(0, 0, 0, 0.2),\n\t\t\t0 2px 7px rgba(0, 0, 0, 0.15);--shadow-floating-window:0 2px 14px rgba(0, 0, 0, 0.15);--size-xxxsmall:4px;--size-xxsmall:8px;--size-xsmall:16px;--size-small:24px;--size-medium:32px;--size-large:40px;--size-xlarge:48px;--size-xxlarge:64px;--size-xxxlarge:80px}*{box-sizing:border-box}body{position:relative;box-sizing:border-box;font-family:'Inter', sans-serif;margin:0;padding:0}@font-face{font-family:'Inter';font-weight:400;font-style:normal;src:url('https://rsms.me/inter/font-files/Inter-Regular.woff2?v=3.7') format('woff2'),\n\t\t\turl('https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.7') format('woff')}@font-face{font-family:'Inter';font-weight:500;font-style:normal;src:url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7') format('woff2'),\n\t\t\turl('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7') format('woff')}@font-face{font-family:'Inter';font-weight:600;font-style:normal;src:url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7') format('woff2'),\n\t\t\turl('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7') format('woff')}.p-xxxsmall{padding:var(--size-xxxsmall)}.p-xxsmall{padding:var(--size-xxsmall)}.p-xsmall{padding:var(--size-xsmall)}.p-small{padding:var(--size-small)}.p-medium{padding:var(--size-medium)}.p-large{padding:var(--size-large)}.p-xlarge{padding:var(--size-xlarge)}.p-xxlarge{padding:var(--size-xxlarge)}.p-huge{padding:var(--size-xxxlarge)}.pt-xxxsmall{padding-top:var(--size-xxxsmall)}.pt-xxsmall{padding-top:var(--size-xxsmall)}.pt-xsmall{padding-top:var(--size-xsmall)}.pt-small{padding-top:var(--size-small)}.pt-medium{padding-top:var(--size-medium)}.pt-large{padding-top:var(--size-large)}.pt-xlarge{padding-top:var(--size-xlarge)}.pt-xxlarge{padding-top:var(--size-xxlarge)}.pt-huge{padding-top:var(--size-xxxlarge)}.pr-xxxsmall{padding-right:var(--size-xxxsmall)}.pr-xxsmall{padding-right:var(--size-xxsmall)}.pr-xsmall{padding-right:var(--size-xsmall)}.pr-small{padding-right:var(--size-small)}.pr-medium{padding-right:var(--size-medium)}.pr-large{padding-right:var(--size-large)}.pr-xlarge{padding-right:var(--size-xlarge)}.pr-xxlarge{padding-right:var(--size-xxlarge)}.pr-huge{padding-right:var(--size-xxxlarge)}.pb-xxxsmall{padding-bottom:var(--size-xxxsmall)}.pb-xxsmall{padding-bottom:var(--size-xxsmall)}.pb-xsmall{padding-bottom:var(--size-xsmall)}.pb-small{padding-bottom:var(--size-small)}.pb-medium{padding-bottom:var(--size-medium)}.pb-large{padding-bottom:var(--size-large)}.pb-xlarge{padding-bottom:var(--size-xlarge)}.pb-xxlarge{padding-bottom:var(--size-xxlarge)}.pb-huge{padding-bottom:var(--size-xxxlarge)}.pl-xxxsmall{padding-left:var(--size-xxxsmall)}.pl-xxsmall{padding-left:var(--size-xxsmall)}.pl-xsmall{padding-left:var(--size-xsmall)}.pl-small{padding-left:var(--size-small)}.pl-medium{padding-left:var(--size-medium)}.pl-large{padding-left:var(--size-large)}.pl-xlarge{padding-left:var(--size-xlarge)}.pl-xxlarge{padding-left:var(--size-xxlarge)}.pl-huge{padding-left:var(--size-xxxlarge)}.m-xxxsmall{margin:var(--size-xxxsmall)}.m-xxsmall{margin:var(--size-xxsmall)}.m-xsmall{margin:var(--size-xsmall)}.m-small{margin:var(--size-small)}.m-medium{margin:var(--size-medium)}.m-large{margin:var(--size-large)}.m-xlarge{margin:var(--size-xlarge)}.m-xxlarge{margin:var(--size-xxlarge)}.m-huge{margin:var(--size-xxxlarge)}.mt-xxxsmall{margin-top:var(--size-xxxsmall)}.mt-xxsmall{margin-top:var(--size-xxsmall)}.mt-xsmall{margin-top:var(--size-xsmall)}.mt-small{margin-top:var(--size-small)}.mt-medium{margin-top:var(--size-medium)}.mt-large{margin-top:var(--size-large)}.mt-xlarge{margin-top:var(--size-xlarge)}.mt-xxlarge{margin-top:var(--size-xxlarge)}.mt-huge{margin-top:var(--size-xxxlarge)}.mr-xxxsmall{margin-right:var(--size-xxxsmall)}.mr-xxsmall{margin-right:var(--size-xxsmall)}.mr-xsmall{margin-right:var(--size-xsmall)}.mr-small{margin-right:var(--size-small)}.mr-medium{margin-right:var(--size-medium)}.mr-large{margin-right:var(--size-large)}.mr-xlarge{margin-right:var(--size-xlarge)}.mr-xxlarge{margin-right:var(--size-xxlarge)}.mr-huge{margin-right:var(--size-xxxlarge)}.mb-xxxsmall{margin-bottom:var(--size-xxxsmall)}.mb-xxsmall{margin-bottom:var(--size-xxsmall)}.mb-xsmall{margin-bottom:var(--size-xsmall)}.mb-small{margin-bottom:var(--size-small)}.mb-medium{margin-bottom:var(--size-medium)}.mb-large{margin-bottom:var(--size-large)}.mb-xlarge{margin-bottom:var(--size-xlarge)}.mb-xxlarge{margin-bottom:var(--size-xxlarge)}.mb-huge{margin-bottom:var(--size-xxxlarge)}.ml-xxxsmall{margin-left:var(--size-xxxsmall)}.ml-xxsmall{margin-left:var(--size-xxsmall)}.ml-xsmall{margin-left:var(--size-xsmall)}.ml-small{margin-left:var(--size-small)}.ml-medium{margin-left:var(--size-medium)}.ml-large{margin-left:var(--size-large)}.ml-xlarge{margin-left:var(--size-xlarge)}.ml-xxlarge{margin-left:var(--size-xxlarge)}.ml-huge{margin-left:var(--size-xxxlarge)}.hidden{display:none}.inline{display:inline}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.column{flex-direction:column}.column-reverse{flex-direction:column-reverse}.row{flex-direction:row}.row-reverse{flex-direction:row-reverse}.flex-wrap{flex-wrap:wrap}.flex-wrap-reverse{flex-wrap:wrap-reverse}.flex-no-wrap{flex-wrap:nowrap}.flex-shrink{flex-shrink:1}.flex-no-shrink{flex-shrink:0}.flex-grow{flex-grow:1}.flex-no-grow{flex-grow:0}.justify-content-start{justify-content:flex-start}.justify-content-end{justify-content:flex-end}.justify-content-center{justify-content:center}.justify-content-between{justify-content:space-between}.justify-content-around{justify-content:space-around}.align-items-start{align-items:flex-start}.align-items-end{align-items:flex-end}.align-items-center{align-items:center}.align-items-stretch{align-items:stretch}.align-content-start{align-content:flex-start}.align-content-end{align-content:flex-end}.align-content-center{align-content:center}.align-content-stretch{align-content:stretch}.align-self-start{align-self:flex-start}.align-self-end{align-items:flex-end}.align-self-center{align-self:center}.align-self-stretch{align-self:stretch}.button{display:flex;align-items:center;border-radius:var(--border-radius-large);color:var(--white);flex-shrink:0;font-family:var(--font-stack);font-size:var(--font-size-xsmall);font-weight:var(--font-weight-medium);letter-spacing:var(--font-letter-spacing-neg-small);line-height:var(--font-line-height);height:var(--size-medium);padding:0 var(--size-xsmall) 0 var(--size-xsmall);text-decoration:none;outline:none;border:2px solid transparent;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.button--primary{background-color:var(--blue)}.button--primary:enabled:active,.button--primary:enabled:focus{border:2px solid var(--black3)}.button--primary:disabled{background-color:var(--black3)}.button--primary-destructive{background-color:var(--red)}.button--primary-destructive:enabled:active,.button--primary-destructive:enabled:focus{border:2px solid var(--black3)}.button--primary-destructive:disabled{opacity:0.3}.button--secondary,.button--secondary-destructive{background-color:var(--white);border:1px solid var(--black8);color:var(--black8);padding:0 calc(var(--size-xsmall) + 1px) 0 calc(var(--size-xsmall) + 1px);letter-spacing:var(--font-letter-spacing-pos-small)}.button--secondary:enabled:active,.button--secondary-destructive:enabled:active,.button--secondary-destructive:enabled:focus{border:2px solid var(--blue);padding:0 var(--size-xsmall) 0 var(--size-xsmall)}.button--secondary:disabled,.button--secondary-destructive:disabled{border:1px solid var(--black3);color:var(--black3)}.button--secondary-destructive{border-color:var(--red);color:var(--red)}.button--secondary-destructive:disabled{background-color:var(--white)}.button--secondary-destructive:enabled:active,.button--secondary-destructive:enabled:focus{border:2px solid var(--red);padding:0 var(--size-xsmall) 0 var(--size-xsmall)}.button--secondary-destructive:disabled{border:1px solid var(--red);background-color:var(--white);color:var(--red);opacity:0.4}.button--tertiary,.button--tertiary-destructive{border:1px solid transparent;color:var(--blue);padding:0;font-weight:var(--font-weight-normal);letter-spacing:var(--font-letter-spacing-pos-small);cursor:pointer}.button--tertiary:enabled:focus,.button--tertiary-destructive:enabled:focus{text-decoration:underline}.button--tertiary:disabled,.button--tertiary-destructive:disabled{cursor:default;color:var(--black3)}.button--tertiary-destructive{color:var(--red)}.button--tertiary-destructive:enabled:focus{text-decoration:underline}.button--tertiary-destructive:disabled{opacity:0.4}.type{font-family:var(--font-stack);font-size:var(--font-size-xsmall);font-weight:var(--font-weight-normal);line-height:var(--font-line-height);letter-spacing:var(--font-letter-spacing-pos-xsmall)}.type--small{font-size:var(--font-size-small);letter-spacing:var(--font-letter-spacing-pos-small)}.type--large{font-size:var(--font-size-large);line-height:var(--font-line-height-large);letter-spacing:var(--font-letter-spacing-pos-large)}.type--xlarge{font-size:var(--font-size-xlarge);line-height:var(--font-line-height-large);letter-spacing:var(--font-letter-spacing-pos-xlarge)}.type--medium{font-weight:var(--font-weight-medium)}.type--bold{font-weight:var(--font-weight-bold)}.type--inverse{letter-spacing:var(--font-letter-spacing-neg-xsmall)}.type--inverse+.type--small{letter-spacing:var(--font-letter-spacing-neg-small)}.type--inverse+.type--large{letter-spacing:var(--font-letter-spacing-neg-large)}.type--inverse+.type--xlarge{letter-spacing:var(--font-letter-spacing-neg-xlarge)}.type--inline{display:inline-block}.wrapper{}:root{--icon-width:176px}html{position:relative}#thumbnails{display:flex}#thumbnails>*{border-bottom:1px solid rgba(194, 194, 194, 0.3);border-right:1px solid rgba(194, 194, 194, 0.3);box-sizing:border-box;flex-grow:0;height:var(--icon-width);display:grid;place-items:center;position:relative;float:left;width:100%}.preview-window{-ms-scroll-snap-type:y mandatory;scroll-snap-type:y mandatory}@media(max-width: 319px){}@media(min-width: 320px){#thumbnails>*{width:calc(100% / 2)}}@media(min-width: 520px){#thumbnails>*{width:calc(100% / 3)}}@media(min-width: 740px){#thumbnails>*{width:calc(100% / 4)}}@media(min-width: 920px){#thumbnails>*{width:calc(100% / 5)}}@media(min-width: 1220px){#thumbnails>*{width:calc(100% / 6)}}@media(min-width: 1580px){#thumbnails>*{width:calc(100% / 7)}}#actionbar{position:fixed;top:0;width:100%;min-height:49px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;z-index:999}#toolbar{position:fixed;bottom:0;width:100%;min-height:49px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none}#inspect:enabled:active,#inspect:enabled:focus{border:2px solid var(--blue)}.icon__info{position:absolute;top:12px;left:12px;bottom:12px;right:12px}.icon__info>:nth-child(1){position:absolute;top:0}.icon__info>:nth-child(2){position:absolute;bottom:0;width:100%}.icon__info>*>:nth-child(1){text-align:right;opacity:0.5}.icon__info>*>:nth-child(2){position:absolute;left:0;top:0;opacity:0.5}.icon__info p{margin-bottom:0;margin-top:0}.black3{color:var(--black3)}.selectIcon{height:calc(100% - 48px);display:none;place-items:center}.previewButton{padding:8px;width:88px;margin-left:auto;display:none;justify-content:center;pointer-events:auto}.lockButton{padding:8px;width:32px;margin-left:auto;justify-content:center;pointer-events:auto;background-color:transparent;border-radius:2px}.lockButton:hover{background-color:var(--hover-color)}.show{display:flex}";
     styleInject(css_248z);
 
     /* src/App.svelte generated by Svelte v3.43.1 */
+
+    const { Error: Error_1 } = globals;
     const file = "src/App.svelte";
+
+    // (328:6) {:else}
+    function create_else_block(ctx) {
+    	let svg;
+    	let path;
+
+    	const block = {
+    		c: function create() {
+    			svg = svg_element("svg");
+    			path = svg_element("path");
+    			attr_dev(path, "fill-rule", "evenodd");
+    			attr_dev(path, "clip-rule", "evenodd");
+    			attr_dev(path, "d", "M6 4V5H6.5C6.77614 5 7 5.22386 7 5.5V10.5C7 10.7761 6.77614 11 6.5 11H0.5C0.223858 11 0 10.7761 0 10.5V5.5C0 5.22386 0.223858 5 0.5 5H5V2.5C5 1.11929 6.11929 0 7.5 0C8.88071 0 10 1.11929 10 2.5V4H9V2.5C9 1.67157 8.32843 1 7.5 1C6.67157 1 6 1.67157 6 2.5V4Z");
+    			attr_dev(path, "fill", /*oppositeColor*/ ctx[6]);
+    			attr_dev(path, "fill-opacity", "0.8");
+    			add_location(path, file, 329, 0, 13276);
+    			attr_dev(svg, "width", "10");
+    			attr_dev(svg, "height", "11");
+    			attr_dev(svg, "viewBox", "0 0 10 11");
+    			attr_dev(svg, "fill", "none");
+    			attr_dev(svg, "xmlns", "http://www.w3.org/2000/svg");
+    			add_location(svg, file, 328, 0, 13180);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, svg, anchor);
+    			append_dev(svg, path);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*oppositeColor*/ 64) {
+    				attr_dev(path, "fill", /*oppositeColor*/ ctx[6]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(svg);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block.name,
+    		type: "else",
+    		source: "(328:6) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (325:6) {#if previewLocked}
+    function create_if_block(ctx) {
+    	let svg;
+    	let path;
+
+    	const block = {
+    		c: function create() {
+    			svg = svg_element("svg");
+    			path = svg_element("path");
+    			attr_dev(path, "fill-rule", "evenodd");
+    			attr_dev(path, "clip-rule", "evenodd");
+    			attr_dev(path, "d", "M5.5 2.5V4H2.5V2.5C2.5 1.67157 3.17157 1 4 1C4.82843 1 5.5 1.67157 5.5 2.5ZM1.5 4V2.5C1.5 1.11929 2.61929 0 4 0C5.38071 0 6.5 1.11929 6.5 2.5V4H7C7.27614 4 7.5 4.22386 7.5 4.5V9.5C7.5 9.77614 7.27614 10 7 10H1C0.723858 10 0.5 9.77614 0.5 9.5V4.5C0.5 4.22386 0.723858 4 1 4H1.5Z");
+    			attr_dev(path, "fill", /*oppositeColor*/ ctx[6]);
+    			attr_dev(path, "fill-opacity", "0.8");
+    			add_location(path, file, 325, 0, 12787);
+    			attr_dev(svg, "width", "8");
+    			attr_dev(svg, "height", "10");
+    			attr_dev(svg, "viewBox", "0 0 8 10");
+    			attr_dev(svg, "fill", "none");
+    			attr_dev(svg, "xmlns", "http://www.w3.org/2000/svg");
+    			add_location(svg, file, 324, 25, 12693);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, svg, anchor);
+    			append_dev(svg, path);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*oppositeColor*/ 64) {
+    				attr_dev(path, "fill", /*oppositeColor*/ ctx[6]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(svg);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block.name,
+    		type: "if",
+    		source: "(325:6) {#if previewLocked}",
+    		ctx
+    	});
+
+    	return block;
+    }
 
     function create_fragment(ctx) {
     	let div73;
-    	let div70;
-    	let div69;
-    	let div68;
-    	let div3;
-    	let div0;
-    	let t0;
-    	let div2;
-    	let p0;
-    	let t1;
     	let div1;
-    	let p1;
-    	let t2;
-    	let p2;
-    	let t3;
-    	let div7;
-    	let div4;
-    	let t4;
-    	let div6;
-    	let p3;
-    	let t5;
-    	let div5;
-    	let p4;
-    	let t6;
-    	let p5;
-    	let t7;
-    	let div11;
-    	let div8;
-    	let t8;
-    	let div10;
-    	let p6;
-    	let t9;
-    	let div9;
-    	let p7;
-    	let t10;
-    	let p8;
-    	let t11;
-    	let div15;
-    	let div12;
-    	let t12;
-    	let div14;
-    	let p9;
-    	let t13;
-    	let div13;
-    	let p10;
-    	let t14;
-    	let p11;
-    	let t15;
-    	let div19;
-    	let div16;
-    	let t16;
-    	let div18;
-    	let p12;
-    	let t17;
-    	let div17;
-    	let p13;
-    	let t18;
-    	let p14;
-    	let t19;
-    	let div23;
-    	let div20;
-    	let t20;
-    	let div22;
-    	let p15;
-    	let t21;
-    	let div21;
-    	let p16;
-    	let t22;
-    	let p17;
-    	let t23;
-    	let div27;
-    	let div24;
-    	let t24;
-    	let div26;
-    	let p18;
-    	let t25;
-    	let div25;
-    	let p19;
-    	let t26;
-    	let p20;
-    	let t27;
-    	let div31;
-    	let div28;
-    	let t28;
-    	let div30;
-    	let p21;
-    	let t29;
-    	let div29;
-    	let p22;
-    	let t30;
-    	let p23;
-    	let t31;
-    	let div35;
-    	let div32;
-    	let t32;
-    	let div34;
-    	let p24;
-    	let t33;
-    	let div33;
-    	let p25;
-    	let t34;
-    	let p26;
-    	let t35;
-    	let div39;
-    	let div36;
-    	let t36;
-    	let div38;
-    	let p27;
-    	let t37;
-    	let div37;
-    	let p28;
-    	let t38;
-    	let p29;
-    	let t39;
-    	let div43;
-    	let div40;
-    	let t40;
-    	let div42;
-    	let p30;
-    	let t41;
-    	let div41;
-    	let p31;
-    	let t42;
-    	let p32;
-    	let t43;
-    	let div47;
-    	let div44;
-    	let t44;
-    	let div46;
-    	let p33;
-    	let t45;
-    	let div45;
-    	let p34;
-    	let t46;
-    	let p35;
-    	let t47;
-    	let div51;
-    	let div48;
-    	let t48;
-    	let div50;
-    	let p36;
-    	let t49;
-    	let div49;
-    	let p37;
-    	let t50;
-    	let p38;
-    	let t51;
-    	let div55;
-    	let div52;
-    	let t52;
-    	let div54;
-    	let p39;
-    	let t53;
-    	let div53;
-    	let p40;
-    	let t54;
-    	let p41;
-    	let t55;
-    	let div59;
-    	let div56;
-    	let t56;
-    	let div58;
-    	let p42;
-    	let t57;
-    	let div57;
-    	let p43;
-    	let t58;
-    	let p44;
-    	let t59;
-    	let div63;
-    	let div60;
-    	let t60;
-    	let div62;
-    	let p45;
-    	let t61;
-    	let div61;
-    	let p46;
-    	let t62;
-    	let p47;
-    	let t63;
-    	let div67;
-    	let div64;
-    	let t64;
-    	let div66;
-    	let p48;
-    	let t65;
-    	let div65;
-    	let p49;
-    	let t66;
-    	let p50;
-    	let t67;
-    	let div72;
     	let button0;
-    	let div71;
+    	let div0;
     	let canvas;
     	let span0;
-    	let t69;
+    	let t1;
     	let button1;
     	let span1;
-    	let t70_value = (/*previewLocked*/ ctx[8] ? "Locked" : "Lock") + "";
+    	let t2;
+    	let div72;
+    	let div71;
+    	let div70;
+    	let div5;
+    	let div2;
+    	let t3;
+    	let div4;
+    	let p0;
+    	let t4;
+    	let div3;
+    	let p1;
+    	let t5;
+    	let p2;
+    	let t6;
+    	let div9;
+    	let div6;
+    	let t7;
+    	let div8;
+    	let p3;
+    	let t8;
+    	let div7;
+    	let p4;
+    	let t9;
+    	let p5;
+    	let t10;
+    	let div13;
+    	let div10;
+    	let t11;
+    	let div12;
+    	let p6;
+    	let t12;
+    	let div11;
+    	let p7;
+    	let t13;
+    	let p8;
+    	let t14;
+    	let div17;
+    	let div14;
+    	let t15;
+    	let div16;
+    	let p9;
+    	let t16;
+    	let div15;
+    	let p10;
+    	let t17;
+    	let p11;
+    	let t18;
+    	let div21;
+    	let div18;
+    	let t19;
+    	let div20;
+    	let p12;
+    	let t20;
+    	let div19;
+    	let p13;
+    	let t21;
+    	let p14;
+    	let t22;
+    	let div25;
+    	let div22;
+    	let t23;
+    	let div24;
+    	let p15;
+    	let t24;
+    	let div23;
+    	let p16;
+    	let t25;
+    	let p17;
+    	let t26;
+    	let div29;
+    	let div26;
+    	let t27;
+    	let div28;
+    	let p18;
+    	let t28;
+    	let div27;
+    	let p19;
+    	let t29;
+    	let p20;
+    	let t30;
+    	let div33;
+    	let div30;
+    	let t31;
+    	let div32;
+    	let p21;
+    	let t32;
+    	let div31;
+    	let p22;
+    	let t33;
+    	let p23;
+    	let t34;
+    	let div37;
+    	let div34;
+    	let t35;
+    	let div36;
+    	let p24;
+    	let t36;
+    	let div35;
+    	let p25;
+    	let t37;
+    	let p26;
+    	let t38;
+    	let div41;
+    	let div38;
+    	let t39;
+    	let div40;
+    	let p27;
+    	let t40;
+    	let div39;
+    	let p28;
+    	let t41;
+    	let p29;
+    	let t42;
+    	let div45;
+    	let div42;
+    	let t43;
+    	let div44;
+    	let p30;
+    	let t44;
+    	let div43;
+    	let p31;
+    	let t45;
+    	let p32;
+    	let t46;
+    	let div49;
+    	let div46;
+    	let t47;
+    	let div48;
+    	let p33;
+    	let t48;
+    	let div47;
+    	let p34;
+    	let t49;
+    	let p35;
+    	let t50;
+    	let div53;
+    	let div50;
+    	let t51;
+    	let div52;
+    	let p36;
+    	let t52;
+    	let div51;
+    	let p37;
+    	let t53;
+    	let p38;
+    	let t54;
+    	let div57;
+    	let div54;
+    	let t55;
+    	let div56;
+    	let p39;
+    	let t56;
+    	let div55;
+    	let p40;
+    	let t57;
+    	let p41;
+    	let t58;
+    	let div61;
+    	let div58;
+    	let t59;
+    	let div60;
+    	let p42;
+    	let t60;
+    	let div59;
+    	let p43;
+    	let t61;
+    	let p44;
+    	let t62;
+    	let div65;
+    	let div62;
+    	let t63;
+    	let div64;
+    	let p45;
+    	let t64;
+    	let div63;
+    	let p46;
+    	let t65;
+    	let p47;
+    	let t66;
+    	let div69;
+    	let div66;
+    	let t67;
+    	let div68;
+    	let p48;
+    	let t68;
+    	let div67;
+    	let p49;
+    	let t69;
+    	let p50;
     	let t70;
-    	let t71;
     	let svg;
     	let path0;
     	let path1;
@@ -599,670 +692,677 @@ var app = (function () {
     	let mounted;
     	let dispose;
 
+    	function select_block_type(ctx, dirty) {
+    		if (/*previewLocked*/ ctx[8]) return create_if_block;
+    		return create_else_block;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block = current_block_type(ctx);
+
     	const block = {
     		c: function create() {
     			div73 = element("div");
-    			div70 = element("div");
-    			div69 = element("div");
-    			div68 = element("div");
-    			div3 = element("div");
-    			div0 = element("div");
-    			t0 = space();
-    			div2 = element("div");
-    			p0 = element("p");
-    			t1 = space();
     			div1 = element("div");
-    			p1 = element("p");
-    			t2 = space();
-    			p2 = element("p");
-    			t3 = space();
-    			div7 = element("div");
-    			div4 = element("div");
-    			t4 = space();
-    			div6 = element("div");
-    			p3 = element("p");
-    			t5 = space();
-    			div5 = element("div");
-    			p4 = element("p");
-    			t6 = space();
-    			p5 = element("p");
-    			t7 = space();
-    			div11 = element("div");
-    			div8 = element("div");
-    			t8 = space();
-    			div10 = element("div");
-    			p6 = element("p");
-    			t9 = space();
-    			div9 = element("div");
-    			p7 = element("p");
-    			t10 = space();
-    			p8 = element("p");
-    			t11 = space();
-    			div15 = element("div");
-    			div12 = element("div");
-    			t12 = space();
-    			div14 = element("div");
-    			p9 = element("p");
-    			t13 = space();
-    			div13 = element("div");
-    			p10 = element("p");
-    			t14 = space();
-    			p11 = element("p");
-    			t15 = space();
-    			div19 = element("div");
-    			div16 = element("div");
-    			t16 = space();
-    			div18 = element("div");
-    			p12 = element("p");
-    			t17 = space();
-    			div17 = element("div");
-    			p13 = element("p");
-    			t18 = space();
-    			p14 = element("p");
-    			t19 = space();
-    			div23 = element("div");
-    			div20 = element("div");
-    			t20 = space();
-    			div22 = element("div");
-    			p15 = element("p");
-    			t21 = space();
-    			div21 = element("div");
-    			p16 = element("p");
-    			t22 = space();
-    			p17 = element("p");
-    			t23 = space();
-    			div27 = element("div");
-    			div24 = element("div");
-    			t24 = space();
-    			div26 = element("div");
-    			p18 = element("p");
-    			t25 = space();
-    			div25 = element("div");
-    			p19 = element("p");
-    			t26 = space();
-    			p20 = element("p");
-    			t27 = space();
-    			div31 = element("div");
-    			div28 = element("div");
-    			t28 = space();
-    			div30 = element("div");
-    			p21 = element("p");
-    			t29 = space();
-    			div29 = element("div");
-    			p22 = element("p");
-    			t30 = space();
-    			p23 = element("p");
-    			t31 = space();
-    			div35 = element("div");
-    			div32 = element("div");
-    			t32 = space();
-    			div34 = element("div");
-    			p24 = element("p");
-    			t33 = space();
-    			div33 = element("div");
-    			p25 = element("p");
-    			t34 = space();
-    			p26 = element("p");
-    			t35 = space();
-    			div39 = element("div");
-    			div36 = element("div");
-    			t36 = space();
-    			div38 = element("div");
-    			p27 = element("p");
-    			t37 = space();
-    			div37 = element("div");
-    			p28 = element("p");
-    			t38 = space();
-    			p29 = element("p");
-    			t39 = space();
-    			div43 = element("div");
-    			div40 = element("div");
-    			t40 = space();
-    			div42 = element("div");
-    			p30 = element("p");
-    			t41 = space();
-    			div41 = element("div");
-    			p31 = element("p");
-    			t42 = space();
-    			p32 = element("p");
-    			t43 = space();
-    			div47 = element("div");
-    			div44 = element("div");
-    			t44 = space();
-    			div46 = element("div");
-    			p33 = element("p");
-    			t45 = space();
-    			div45 = element("div");
-    			p34 = element("p");
-    			t46 = space();
-    			p35 = element("p");
-    			t47 = space();
-    			div51 = element("div");
-    			div48 = element("div");
-    			t48 = space();
-    			div50 = element("div");
-    			p36 = element("p");
-    			t49 = space();
-    			div49 = element("div");
-    			p37 = element("p");
-    			t50 = space();
-    			p38 = element("p");
-    			t51 = space();
-    			div55 = element("div");
-    			div52 = element("div");
-    			t52 = space();
-    			div54 = element("div");
-    			p39 = element("p");
-    			t53 = space();
-    			div53 = element("div");
-    			p40 = element("p");
-    			t54 = space();
-    			p41 = element("p");
-    			t55 = space();
-    			div59 = element("div");
-    			div56 = element("div");
-    			t56 = space();
-    			div58 = element("div");
-    			p42 = element("p");
-    			t57 = space();
-    			div57 = element("div");
-    			p43 = element("p");
-    			t58 = space();
-    			p44 = element("p");
-    			t59 = space();
-    			div63 = element("div");
-    			div60 = element("div");
-    			t60 = space();
-    			div62 = element("div");
-    			p45 = element("p");
-    			t61 = space();
-    			div61 = element("div");
-    			p46 = element("p");
-    			t62 = space();
-    			p47 = element("p");
-    			t63 = space();
-    			div67 = element("div");
-    			div64 = element("div");
-    			t64 = space();
-    			div66 = element("div");
-    			p48 = element("p");
-    			t65 = space();
-    			div65 = element("div");
-    			p49 = element("p");
-    			t66 = space();
-    			p50 = element("p");
-    			t67 = space();
-    			div72 = element("div");
     			button0 = element("button");
-    			div71 = element("div");
+    			div0 = element("div");
     			canvas = element("canvas");
     			span0 = element("span");
     			span0.textContent = "Swap";
-    			t69 = space();
+    			t1 = space();
     			button1 = element("button");
     			span1 = element("span");
-    			t70 = text(t70_value);
-    			t71 = space();
+    			if_block.c();
+    			t2 = space();
+    			div72 = element("div");
+    			div71 = element("div");
+    			div70 = element("div");
+    			div5 = element("div");
+    			div2 = element("div");
+    			t3 = space();
+    			div4 = element("div");
+    			p0 = element("p");
+    			t4 = space();
+    			div3 = element("div");
+    			p1 = element("p");
+    			t5 = space();
+    			p2 = element("p");
+    			t6 = space();
+    			div9 = element("div");
+    			div6 = element("div");
+    			t7 = space();
+    			div8 = element("div");
+    			p3 = element("p");
+    			t8 = space();
+    			div7 = element("div");
+    			p4 = element("p");
+    			t9 = space();
+    			p5 = element("p");
+    			t10 = space();
+    			div13 = element("div");
+    			div10 = element("div");
+    			t11 = space();
+    			div12 = element("div");
+    			p6 = element("p");
+    			t12 = space();
+    			div11 = element("div");
+    			p7 = element("p");
+    			t13 = space();
+    			p8 = element("p");
+    			t14 = space();
+    			div17 = element("div");
+    			div14 = element("div");
+    			t15 = space();
+    			div16 = element("div");
+    			p9 = element("p");
+    			t16 = space();
+    			div15 = element("div");
+    			p10 = element("p");
+    			t17 = space();
+    			p11 = element("p");
+    			t18 = space();
+    			div21 = element("div");
+    			div18 = element("div");
+    			t19 = space();
+    			div20 = element("div");
+    			p12 = element("p");
+    			t20 = space();
+    			div19 = element("div");
+    			p13 = element("p");
+    			t21 = space();
+    			p14 = element("p");
+    			t22 = space();
+    			div25 = element("div");
+    			div22 = element("div");
+    			t23 = space();
+    			div24 = element("div");
+    			p15 = element("p");
+    			t24 = space();
+    			div23 = element("div");
+    			p16 = element("p");
+    			t25 = space();
+    			p17 = element("p");
+    			t26 = space();
+    			div29 = element("div");
+    			div26 = element("div");
+    			t27 = space();
+    			div28 = element("div");
+    			p18 = element("p");
+    			t28 = space();
+    			div27 = element("div");
+    			p19 = element("p");
+    			t29 = space();
+    			p20 = element("p");
+    			t30 = space();
+    			div33 = element("div");
+    			div30 = element("div");
+    			t31 = space();
+    			div32 = element("div");
+    			p21 = element("p");
+    			t32 = space();
+    			div31 = element("div");
+    			p22 = element("p");
+    			t33 = space();
+    			p23 = element("p");
+    			t34 = space();
+    			div37 = element("div");
+    			div34 = element("div");
+    			t35 = space();
+    			div36 = element("div");
+    			p24 = element("p");
+    			t36 = space();
+    			div35 = element("div");
+    			p25 = element("p");
+    			t37 = space();
+    			p26 = element("p");
+    			t38 = space();
+    			div41 = element("div");
+    			div38 = element("div");
+    			t39 = space();
+    			div40 = element("div");
+    			p27 = element("p");
+    			t40 = space();
+    			div39 = element("div");
+    			p28 = element("p");
+    			t41 = space();
+    			p29 = element("p");
+    			t42 = space();
+    			div45 = element("div");
+    			div42 = element("div");
+    			t43 = space();
+    			div44 = element("div");
+    			p30 = element("p");
+    			t44 = space();
+    			div43 = element("div");
+    			p31 = element("p");
+    			t45 = space();
+    			p32 = element("p");
+    			t46 = space();
+    			div49 = element("div");
+    			div46 = element("div");
+    			t47 = space();
+    			div48 = element("div");
+    			p33 = element("p");
+    			t48 = space();
+    			div47 = element("div");
+    			p34 = element("p");
+    			t49 = space();
+    			p35 = element("p");
+    			t50 = space();
+    			div53 = element("div");
+    			div50 = element("div");
+    			t51 = space();
+    			div52 = element("div");
+    			p36 = element("p");
+    			t52 = space();
+    			div51 = element("div");
+    			p37 = element("p");
+    			t53 = space();
+    			p38 = element("p");
+    			t54 = space();
+    			div57 = element("div");
+    			div54 = element("div");
+    			t55 = space();
+    			div56 = element("div");
+    			p39 = element("p");
+    			t56 = space();
+    			div55 = element("div");
+    			p40 = element("p");
+    			t57 = space();
+    			p41 = element("p");
+    			t58 = space();
+    			div61 = element("div");
+    			div58 = element("div");
+    			t59 = space();
+    			div60 = element("div");
+    			p42 = element("p");
+    			t60 = space();
+    			div59 = element("div");
+    			p43 = element("p");
+    			t61 = space();
+    			p44 = element("p");
+    			t62 = space();
+    			div65 = element("div");
+    			div62 = element("div");
+    			t63 = space();
+    			div64 = element("div");
+    			p45 = element("p");
+    			t64 = space();
+    			div63 = element("div");
+    			p46 = element("p");
+    			t65 = space();
+    			p47 = element("p");
+    			t66 = space();
+    			div69 = element("div");
+    			div66 = element("div");
+    			t67 = space();
+    			div68 = element("div");
+    			p48 = element("p");
+    			t68 = space();
+    			div67 = element("div");
+    			p49 = element("p");
+    			t69 = space();
+    			p50 = element("p");
+    			t70 = space();
     			svg = svg_element("svg");
     			path0 = svg_element("path");
     			path1 = svg_element("path");
     			path2 = svg_element("path");
-    			add_location(div0, file, 309, 6, 11674);
-    			attr_dev(p0, "class", "type--small");
-    			add_location(p0, file, 311, 7, 11724);
-    			attr_dev(p1, "class", "type--small");
-    			add_location(p1, file, 313, 8, 11773);
-    			attr_dev(p2, "class", "type--small");
-    			add_location(p2, file, 314, 8, 11809);
-    			add_location(div1, file, 312, 7, 11759);
-    			attr_dev(div2, "class", "icon__info");
-    			add_location(div2, file, 310, 6, 11692);
-    			add_location(div3, file, 308, 5, 11662);
-    			add_location(div4, file, 319, 6, 11893);
-    			attr_dev(p3, "class", "type--small");
-    			add_location(p3, file, 321, 7, 11943);
-    			attr_dev(p4, "class", "type--small");
-    			add_location(p4, file, 323, 8, 11992);
-    			attr_dev(p5, "class", "type--small");
-    			add_location(p5, file, 324, 8, 12028);
-    			add_location(div5, file, 322, 7, 11978);
-    			attr_dev(div6, "class", "icon__info");
-    			add_location(div6, file, 320, 6, 11911);
-    			add_location(div7, file, 318, 5, 11881);
-    			add_location(div8, file, 329, 6, 12112);
-    			attr_dev(p6, "class", "type--small");
-    			add_location(p6, file, 331, 7, 12162);
-    			attr_dev(p7, "class", "type--small");
-    			add_location(p7, file, 333, 8, 12211);
-    			attr_dev(p8, "class", "type--small");
-    			add_location(p8, file, 334, 8, 12247);
-    			add_location(div9, file, 332, 7, 12197);
-    			attr_dev(div10, "class", "icon__info");
-    			add_location(div10, file, 330, 6, 12130);
-    			add_location(div11, file, 328, 5, 12100);
-    			add_location(div12, file, 339, 6, 12331);
-    			attr_dev(p9, "class", "type--small");
-    			add_location(p9, file, 341, 7, 12381);
-    			attr_dev(p10, "class", "type--small");
-    			add_location(p10, file, 343, 8, 12430);
-    			attr_dev(p11, "class", "type--small");
-    			add_location(p11, file, 344, 8, 12466);
-    			add_location(div13, file, 342, 7, 12416);
-    			attr_dev(div14, "class", "icon__info");
-    			add_location(div14, file, 340, 6, 12349);
-    			add_location(div15, file, 338, 5, 12319);
-    			add_location(div16, file, 349, 6, 12550);
-    			attr_dev(p12, "class", "type--small");
-    			add_location(p12, file, 351, 7, 12600);
-    			attr_dev(p13, "class", "type--small");
-    			add_location(p13, file, 353, 8, 12649);
-    			attr_dev(p14, "class", "type--small");
-    			add_location(p14, file, 354, 8, 12685);
-    			add_location(div17, file, 352, 7, 12635);
-    			attr_dev(div18, "class", "icon__info");
-    			add_location(div18, file, 350, 6, 12568);
-    			add_location(div19, file, 348, 5, 12538);
-    			add_location(div20, file, 359, 6, 12769);
-    			attr_dev(p15, "class", "type--small");
-    			add_location(p15, file, 361, 7, 12819);
-    			attr_dev(p16, "class", "type--small");
-    			add_location(p16, file, 363, 8, 12868);
-    			attr_dev(p17, "class", "type--small");
-    			add_location(p17, file, 364, 8, 12904);
-    			add_location(div21, file, 362, 7, 12854);
-    			attr_dev(div22, "class", "icon__info");
-    			add_location(div22, file, 360, 6, 12787);
-    			add_location(div23, file, 358, 5, 12757);
-    			add_location(div24, file, 369, 6, 12988);
-    			attr_dev(p18, "class", "type--small");
-    			add_location(p18, file, 371, 7, 13038);
-    			attr_dev(p19, "class", "type--small");
-    			add_location(p19, file, 373, 8, 13087);
-    			attr_dev(p20, "class", "type--small");
-    			add_location(p20, file, 374, 8, 13123);
-    			add_location(div25, file, 372, 7, 13073);
-    			attr_dev(div26, "class", "icon__info");
-    			add_location(div26, file, 370, 6, 13006);
-    			add_location(div27, file, 368, 5, 12976);
-    			add_location(div28, file, 379, 6, 13207);
-    			attr_dev(p21, "class", "type--small");
-    			add_location(p21, file, 381, 7, 13257);
-    			attr_dev(p22, "class", "type--small");
-    			add_location(p22, file, 383, 8, 13306);
-    			attr_dev(p23, "class", "type--small");
-    			add_location(p23, file, 384, 8, 13342);
-    			add_location(div29, file, 382, 7, 13292);
-    			attr_dev(div30, "class", "icon__info");
-    			add_location(div30, file, 380, 6, 13225);
-    			add_location(div31, file, 378, 5, 13195);
-    			add_location(div32, file, 389, 6, 13426);
-    			attr_dev(p24, "class", "type--small");
-    			add_location(p24, file, 391, 7, 13476);
-    			attr_dev(p25, "class", "type--small");
-    			add_location(p25, file, 393, 8, 13525);
-    			attr_dev(p26, "class", "type--small");
-    			add_location(p26, file, 394, 8, 13561);
-    			add_location(div33, file, 392, 7, 13511);
-    			attr_dev(div34, "class", "icon__info");
-    			add_location(div34, file, 390, 6, 13444);
-    			add_location(div35, file, 388, 5, 13414);
-    			add_location(div36, file, 399, 6, 13645);
-    			attr_dev(p27, "class", "type--small");
-    			add_location(p27, file, 401, 7, 13695);
-    			attr_dev(p28, "class", "type--small");
-    			add_location(p28, file, 403, 8, 13744);
-    			attr_dev(p29, "class", "type--small");
-    			add_location(p29, file, 404, 8, 13780);
-    			add_location(div37, file, 402, 7, 13730);
-    			attr_dev(div38, "class", "icon__info");
-    			add_location(div38, file, 400, 6, 13663);
-    			add_location(div39, file, 398, 5, 13633);
-    			add_location(div40, file, 409, 6, 13864);
-    			attr_dev(p30, "class", "type--small");
-    			add_location(p30, file, 411, 7, 13914);
-    			attr_dev(p31, "class", "type--small");
-    			add_location(p31, file, 413, 8, 13963);
-    			attr_dev(p32, "class", "type--small");
-    			add_location(p32, file, 414, 8, 13999);
-    			add_location(div41, file, 412, 7, 13949);
-    			attr_dev(div42, "class", "icon__info");
-    			add_location(div42, file, 410, 6, 13882);
-    			add_location(div43, file, 408, 5, 13852);
-    			add_location(div44, file, 419, 6, 14083);
-    			attr_dev(p33, "class", "type--small");
-    			add_location(p33, file, 421, 7, 14133);
-    			attr_dev(p34, "class", "type--small");
-    			add_location(p34, file, 423, 8, 14182);
-    			attr_dev(p35, "class", "type--small");
-    			add_location(p35, file, 424, 8, 14218);
-    			add_location(div45, file, 422, 7, 14168);
-    			attr_dev(div46, "class", "icon__info");
-    			add_location(div46, file, 420, 6, 14101);
-    			add_location(div47, file, 418, 5, 14071);
-    			add_location(div48, file, 429, 6, 14302);
-    			attr_dev(p36, "class", "type--small");
-    			add_location(p36, file, 431, 7, 14352);
-    			attr_dev(p37, "class", "type--small");
-    			add_location(p37, file, 433, 8, 14401);
-    			attr_dev(p38, "class", "type--small");
-    			add_location(p38, file, 434, 8, 14437);
-    			add_location(div49, file, 432, 7, 14387);
-    			attr_dev(div50, "class", "icon__info");
-    			add_location(div50, file, 430, 6, 14320);
-    			add_location(div51, file, 428, 5, 14290);
-    			add_location(div52, file, 439, 6, 14521);
-    			attr_dev(p39, "class", "type--small");
-    			add_location(p39, file, 441, 7, 14571);
-    			attr_dev(p40, "class", "type--small");
-    			add_location(p40, file, 443, 8, 14620);
-    			attr_dev(p41, "class", "type--small");
-    			add_location(p41, file, 444, 8, 14656);
-    			add_location(div53, file, 442, 7, 14606);
-    			attr_dev(div54, "class", "icon__info");
-    			add_location(div54, file, 440, 6, 14539);
-    			add_location(div55, file, 438, 5, 14509);
-    			add_location(div56, file, 449, 6, 14740);
-    			attr_dev(p42, "class", "type--small");
-    			add_location(p42, file, 451, 7, 14790);
-    			attr_dev(p43, "class", "type--small");
-    			add_location(p43, file, 453, 8, 14839);
-    			attr_dev(p44, "class", "type--small");
-    			add_location(p44, file, 454, 8, 14875);
-    			add_location(div57, file, 452, 7, 14825);
-    			attr_dev(div58, "class", "icon__info");
-    			add_location(div58, file, 450, 6, 14758);
-    			add_location(div59, file, 448, 5, 14728);
-    			add_location(div60, file, 459, 6, 14959);
-    			attr_dev(p45, "class", "type--small");
-    			add_location(p45, file, 461, 7, 15009);
-    			attr_dev(p46, "class", "type--small");
-    			add_location(p46, file, 463, 8, 15058);
-    			attr_dev(p47, "class", "type--small");
-    			add_location(p47, file, 464, 8, 15094);
-    			add_location(div61, file, 462, 7, 15044);
-    			attr_dev(div62, "class", "icon__info");
-    			add_location(div62, file, 460, 6, 14977);
-    			add_location(div63, file, 458, 5, 14947);
-    			add_location(div64, file, 469, 6, 15178);
-    			attr_dev(p48, "class", "type--small");
-    			add_location(p48, file, 471, 7, 15228);
-    			attr_dev(p49, "class", "type--small");
-    			add_location(p49, file, 473, 8, 15277);
-    			attr_dev(p50, "class", "type--small");
-    			add_location(p50, file, 474, 8, 15313);
-    			add_location(div65, file, 472, 7, 15263);
-    			attr_dev(div66, "class", "icon__info");
-    			add_location(div66, file, 470, 6, 15196);
-    			add_location(div67, file, 468, 5, 15166);
-    			attr_dev(div68, "id", "thumbnails");
-    			set_style(div68, "color", /*oppositeColor*/ ctx[6]);
-    			add_location(div68, file, 307, 4, 11604);
-    			attr_dev(div69, "class", "thumbnail-wrapper");
-    			add_location(div69, file, 306, 4, 11567);
-    			attr_dev(div70, "class", "preview-window");
-    			add_location(div70, file, 304, 2, 11431);
     			attr_dev(canvas, "width", "16");
     			attr_dev(canvas, "height", "16");
-    			add_location(canvas, file, 485, 99, 15797);
-    			attr_dev(div71, "id", "thumbnail");
-    			add_location(div71, file, 485, 55, 15753);
+    			add_location(canvas, file, 320, 99, 12291);
+    			attr_dev(div0, "id", "thumbnail");
+    			add_location(div0, file, 320, 55, 12247);
     			set_style(span0, "white-space", "nowrap");
-    			add_location(span0, file, 485, 167, 15865);
+    			add_location(span0, file, 320, 167, 12359);
     			attr_dev(button0, "id", "refresh");
     			set_style(button0, "background-color", /*canvasColor*/ ctx[5]);
     			set_style(button0, "color", /*oppositeColor*/ ctx[6]);
     			set_style(button0, "border-color", /*oppositeColor*/ ctx[6]);
     			attr_dev(button0, "class", "previewButton button button--secondary");
-    			add_location(button0, file, 483, 3, 15521);
+    			add_location(button0, file, 318, 3, 12015);
     			set_style(span1, "white-space", "nowrap");
-    			add_location(span1, file, 489, 52, 16155);
+    			add_location(span1, file, 323, 51, 12632);
     			attr_dev(button1, "id", "lock");
-    			set_style(button1, "background-color", /*canvasColor*/ ctx[5]);
     			set_style(button1, "color", /*oppositeColor*/ ctx[6]);
-    			set_style(button1, "border-color", /*oppositeColor*/ ctx[6]);
-    			attr_dev(button1, "class", "lockButton button button--secondary");
-    			add_location(button1, file, 487, 3, 15925);
-    			attr_dev(div72, "id", "toolbar");
-    			attr_dev(div72, "class", "p-xxsmall flex");
-    			set_style(div72, "justify-content", "space-between");
-    			add_location(div72, file, 482, 2, 15414);
+    			set_style(button1, "--hover-color", hexToRgba(/*oppositeColor*/ ctx[6], 0.06));
+    			attr_dev(button1, "class", "lockButton button button--tertiary");
+    			add_location(button1, file, 321, 3, 12418);
+    			attr_dev(div1, "id", "actionbar");
+    			attr_dev(div1, "class", "p-xxsmall flex");
+    			set_style(div1, "justify-content", "space-between");
+    			add_location(div1, file, 317, 2, 11904);
+    			add_location(div2, file, 341, 6, 13925);
+    			attr_dev(p0, "class", "type--small");
+    			add_location(p0, file, 343, 7, 13975);
+    			attr_dev(p1, "class", "type--small");
+    			add_location(p1, file, 345, 8, 14024);
+    			attr_dev(p2, "class", "type--small");
+    			add_location(p2, file, 346, 8, 14060);
+    			add_location(div3, file, 344, 7, 14010);
+    			attr_dev(div4, "class", "icon__info");
+    			add_location(div4, file, 342, 6, 13943);
+    			add_location(div5, file, 340, 5, 13913);
+    			add_location(div6, file, 351, 6, 14144);
+    			attr_dev(p3, "class", "type--small");
+    			add_location(p3, file, 353, 7, 14194);
+    			attr_dev(p4, "class", "type--small");
+    			add_location(p4, file, 355, 8, 14243);
+    			attr_dev(p5, "class", "type--small");
+    			add_location(p5, file, 356, 8, 14279);
+    			add_location(div7, file, 354, 7, 14229);
+    			attr_dev(div8, "class", "icon__info");
+    			add_location(div8, file, 352, 6, 14162);
+    			add_location(div9, file, 350, 5, 14132);
+    			add_location(div10, file, 361, 6, 14363);
+    			attr_dev(p6, "class", "type--small");
+    			add_location(p6, file, 363, 7, 14413);
+    			attr_dev(p7, "class", "type--small");
+    			add_location(p7, file, 365, 8, 14462);
+    			attr_dev(p8, "class", "type--small");
+    			add_location(p8, file, 366, 8, 14498);
+    			add_location(div11, file, 364, 7, 14448);
+    			attr_dev(div12, "class", "icon__info");
+    			add_location(div12, file, 362, 6, 14381);
+    			add_location(div13, file, 360, 5, 14351);
+    			add_location(div14, file, 371, 6, 14582);
+    			attr_dev(p9, "class", "type--small");
+    			add_location(p9, file, 373, 7, 14632);
+    			attr_dev(p10, "class", "type--small");
+    			add_location(p10, file, 375, 8, 14681);
+    			attr_dev(p11, "class", "type--small");
+    			add_location(p11, file, 376, 8, 14717);
+    			add_location(div15, file, 374, 7, 14667);
+    			attr_dev(div16, "class", "icon__info");
+    			add_location(div16, file, 372, 6, 14600);
+    			add_location(div17, file, 370, 5, 14570);
+    			add_location(div18, file, 381, 6, 14801);
+    			attr_dev(p12, "class", "type--small");
+    			add_location(p12, file, 383, 7, 14851);
+    			attr_dev(p13, "class", "type--small");
+    			add_location(p13, file, 385, 8, 14900);
+    			attr_dev(p14, "class", "type--small");
+    			add_location(p14, file, 386, 8, 14936);
+    			add_location(div19, file, 384, 7, 14886);
+    			attr_dev(div20, "class", "icon__info");
+    			add_location(div20, file, 382, 6, 14819);
+    			add_location(div21, file, 380, 5, 14789);
+    			add_location(div22, file, 391, 6, 15020);
+    			attr_dev(p15, "class", "type--small");
+    			add_location(p15, file, 393, 7, 15070);
+    			attr_dev(p16, "class", "type--small");
+    			add_location(p16, file, 395, 8, 15119);
+    			attr_dev(p17, "class", "type--small");
+    			add_location(p17, file, 396, 8, 15155);
+    			add_location(div23, file, 394, 7, 15105);
+    			attr_dev(div24, "class", "icon__info");
+    			add_location(div24, file, 392, 6, 15038);
+    			add_location(div25, file, 390, 5, 15008);
+    			add_location(div26, file, 401, 6, 15239);
+    			attr_dev(p18, "class", "type--small");
+    			add_location(p18, file, 403, 7, 15289);
+    			attr_dev(p19, "class", "type--small");
+    			add_location(p19, file, 405, 8, 15338);
+    			attr_dev(p20, "class", "type--small");
+    			add_location(p20, file, 406, 8, 15374);
+    			add_location(div27, file, 404, 7, 15324);
+    			attr_dev(div28, "class", "icon__info");
+    			add_location(div28, file, 402, 6, 15257);
+    			add_location(div29, file, 400, 5, 15227);
+    			add_location(div30, file, 411, 6, 15458);
+    			attr_dev(p21, "class", "type--small");
+    			add_location(p21, file, 413, 7, 15508);
+    			attr_dev(p22, "class", "type--small");
+    			add_location(p22, file, 415, 8, 15557);
+    			attr_dev(p23, "class", "type--small");
+    			add_location(p23, file, 416, 8, 15593);
+    			add_location(div31, file, 414, 7, 15543);
+    			attr_dev(div32, "class", "icon__info");
+    			add_location(div32, file, 412, 6, 15476);
+    			add_location(div33, file, 410, 5, 15446);
+    			add_location(div34, file, 421, 6, 15677);
+    			attr_dev(p24, "class", "type--small");
+    			add_location(p24, file, 423, 7, 15727);
+    			attr_dev(p25, "class", "type--small");
+    			add_location(p25, file, 425, 8, 15776);
+    			attr_dev(p26, "class", "type--small");
+    			add_location(p26, file, 426, 8, 15812);
+    			add_location(div35, file, 424, 7, 15762);
+    			attr_dev(div36, "class", "icon__info");
+    			add_location(div36, file, 422, 6, 15695);
+    			add_location(div37, file, 420, 5, 15665);
+    			add_location(div38, file, 431, 6, 15896);
+    			attr_dev(p27, "class", "type--small");
+    			add_location(p27, file, 433, 7, 15946);
+    			attr_dev(p28, "class", "type--small");
+    			add_location(p28, file, 435, 8, 15995);
+    			attr_dev(p29, "class", "type--small");
+    			add_location(p29, file, 436, 8, 16031);
+    			add_location(div39, file, 434, 7, 15981);
+    			attr_dev(div40, "class", "icon__info");
+    			add_location(div40, file, 432, 6, 15914);
+    			add_location(div41, file, 430, 5, 15884);
+    			add_location(div42, file, 441, 6, 16115);
+    			attr_dev(p30, "class", "type--small");
+    			add_location(p30, file, 443, 7, 16165);
+    			attr_dev(p31, "class", "type--small");
+    			add_location(p31, file, 445, 8, 16214);
+    			attr_dev(p32, "class", "type--small");
+    			add_location(p32, file, 446, 8, 16250);
+    			add_location(div43, file, 444, 7, 16200);
+    			attr_dev(div44, "class", "icon__info");
+    			add_location(div44, file, 442, 6, 16133);
+    			add_location(div45, file, 440, 5, 16103);
+    			add_location(div46, file, 451, 6, 16334);
+    			attr_dev(p33, "class", "type--small");
+    			add_location(p33, file, 453, 7, 16384);
+    			attr_dev(p34, "class", "type--small");
+    			add_location(p34, file, 455, 8, 16433);
+    			attr_dev(p35, "class", "type--small");
+    			add_location(p35, file, 456, 8, 16469);
+    			add_location(div47, file, 454, 7, 16419);
+    			attr_dev(div48, "class", "icon__info");
+    			add_location(div48, file, 452, 6, 16352);
+    			add_location(div49, file, 450, 5, 16322);
+    			add_location(div50, file, 461, 6, 16553);
+    			attr_dev(p36, "class", "type--small");
+    			add_location(p36, file, 463, 7, 16603);
+    			attr_dev(p37, "class", "type--small");
+    			add_location(p37, file, 465, 8, 16652);
+    			attr_dev(p38, "class", "type--small");
+    			add_location(p38, file, 466, 8, 16688);
+    			add_location(div51, file, 464, 7, 16638);
+    			attr_dev(div52, "class", "icon__info");
+    			add_location(div52, file, 462, 6, 16571);
+    			add_location(div53, file, 460, 5, 16541);
+    			add_location(div54, file, 471, 6, 16772);
+    			attr_dev(p39, "class", "type--small");
+    			add_location(p39, file, 473, 7, 16822);
+    			attr_dev(p40, "class", "type--small");
+    			add_location(p40, file, 475, 8, 16871);
+    			attr_dev(p41, "class", "type--small");
+    			add_location(p41, file, 476, 8, 16907);
+    			add_location(div55, file, 474, 7, 16857);
+    			attr_dev(div56, "class", "icon__info");
+    			add_location(div56, file, 472, 6, 16790);
+    			add_location(div57, file, 470, 5, 16760);
+    			add_location(div58, file, 481, 6, 16991);
+    			attr_dev(p42, "class", "type--small");
+    			add_location(p42, file, 483, 7, 17041);
+    			attr_dev(p43, "class", "type--small");
+    			add_location(p43, file, 485, 8, 17090);
+    			attr_dev(p44, "class", "type--small");
+    			add_location(p44, file, 486, 8, 17126);
+    			add_location(div59, file, 484, 7, 17076);
+    			attr_dev(div60, "class", "icon__info");
+    			add_location(div60, file, 482, 6, 17009);
+    			add_location(div61, file, 480, 5, 16979);
+    			add_location(div62, file, 491, 6, 17210);
+    			attr_dev(p45, "class", "type--small");
+    			add_location(p45, file, 493, 7, 17260);
+    			attr_dev(p46, "class", "type--small");
+    			add_location(p46, file, 495, 8, 17309);
+    			attr_dev(p47, "class", "type--small");
+    			add_location(p47, file, 496, 8, 17345);
+    			add_location(div63, file, 494, 7, 17295);
+    			attr_dev(div64, "class", "icon__info");
+    			add_location(div64, file, 492, 6, 17228);
+    			add_location(div65, file, 490, 5, 17198);
+    			add_location(div66, file, 501, 6, 17429);
+    			attr_dev(p48, "class", "type--small");
+    			add_location(p48, file, 503, 7, 17479);
+    			attr_dev(p49, "class", "type--small");
+    			add_location(p49, file, 505, 8, 17528);
+    			attr_dev(p50, "class", "type--small");
+    			add_location(p50, file, 506, 8, 17564);
+    			add_location(div67, file, 504, 7, 17514);
+    			attr_dev(div68, "class", "icon__info");
+    			add_location(div68, file, 502, 6, 17447);
+    			add_location(div69, file, 500, 5, 17417);
+    			attr_dev(div70, "id", "thumbnails");
+    			set_style(div70, "color", /*oppositeColor*/ ctx[6]);
+    			add_location(div70, file, 339, 4, 13855);
+    			attr_dev(div71, "class", "thumbnail-wrapper");
+    			add_location(div71, file, 338, 4, 13818);
+    			attr_dev(div72, "class", "preview-window");
+    			add_location(div72, file, 336, 2, 13682);
     			attr_dev(path0, "d", "M13 2L2 13");
-    			attr_dev(path0, "stroke", "black");
+    			attr_dev(path0, "stroke", /*oppositeColor*/ ctx[6]);
     			attr_dev(path0, "stroke-opacity", "0.24");
     			attr_dev(path0, "stroke-linecap", "round");
-    			add_location(path0, file, 493, 2, 16375);
+    			add_location(path0, file, 525, 2, 18635);
     			attr_dev(path1, "d", "M13 6.5L6.5 13");
-    			attr_dev(path1, "stroke", "black");
+    			attr_dev(path1, "stroke", /*oppositeColor*/ ctx[6]);
     			attr_dev(path1, "stroke-opacity", "0.24");
     			attr_dev(path1, "stroke-linecap", "round");
-    			add_location(path1, file, 494, 2, 16460);
+    			add_location(path1, file, 526, 2, 18730);
     			attr_dev(path2, "d", "M13 11L11 13");
-    			attr_dev(path2, "stroke", "black");
+    			attr_dev(path2, "stroke", /*oppositeColor*/ ctx[6]);
     			attr_dev(path2, "stroke-opacity", "0.24");
     			attr_dev(path2, "stroke-linecap", "round");
-    			add_location(path2, file, 495, 2, 16549);
+    			add_location(path2, file, 527, 2, 18829);
     			attr_dev(svg, "id", "corner");
     			attr_dev(svg, "width", "16");
     			attr_dev(svg, "height", "16");
     			attr_dev(svg, "viewBox", "0 0 16 16");
     			attr_dev(svg, "fill", "none");
     			attr_dev(svg, "xmlns", "http://www.w3.org/2000/svg");
-    			add_location(svg, file, 492, 2, 16254);
+    			add_location(svg, file, 524, 2, 18514);
     			attr_dev(div73, "class", "wrapper");
     			set_style(div73, "background-color", /*canvasColor*/ ctx[5]);
-    			add_location(div73, file, 300, 0, 11347);
+    			add_location(div73, file, 315, 0, 11822);
     		},
     		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    			throw new Error_1("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div73, anchor);
-    			append_dev(div73, div70);
-    			append_dev(div70, div69);
-    			append_dev(div69, div68);
-    			append_dev(div68, div3);
-    			append_dev(div3, div0);
-    			append_dev(div3, t0);
-    			append_dev(div3, div2);
-    			append_dev(div2, p0);
-    			append_dev(div2, t1);
-    			append_dev(div2, div1);
-    			append_dev(div1, p1);
-    			append_dev(div1, t2);
-    			append_dev(div1, p2);
-    			append_dev(div68, t3);
-    			append_dev(div68, div7);
-    			append_dev(div7, div4);
-    			append_dev(div7, t4);
-    			append_dev(div7, div6);
-    			append_dev(div6, p3);
-    			append_dev(div6, t5);
-    			append_dev(div6, div5);
-    			append_dev(div5, p4);
-    			append_dev(div5, t6);
-    			append_dev(div5, p5);
-    			append_dev(div68, t7);
-    			append_dev(div68, div11);
-    			append_dev(div11, div8);
-    			append_dev(div11, t8);
-    			append_dev(div11, div10);
-    			append_dev(div10, p6);
-    			append_dev(div10, t9);
-    			append_dev(div10, div9);
-    			append_dev(div9, p7);
-    			append_dev(div9, t10);
-    			append_dev(div9, p8);
-    			append_dev(div68, t11);
-    			append_dev(div68, div15);
-    			append_dev(div15, div12);
-    			append_dev(div15, t12);
-    			append_dev(div15, div14);
-    			append_dev(div14, p9);
-    			append_dev(div14, t13);
-    			append_dev(div14, div13);
-    			append_dev(div13, p10);
-    			append_dev(div13, t14);
-    			append_dev(div13, p11);
-    			append_dev(div68, t15);
-    			append_dev(div68, div19);
-    			append_dev(div19, div16);
-    			append_dev(div19, t16);
-    			append_dev(div19, div18);
-    			append_dev(div18, p12);
-    			append_dev(div18, t17);
-    			append_dev(div18, div17);
-    			append_dev(div17, p13);
-    			append_dev(div17, t18);
-    			append_dev(div17, p14);
-    			append_dev(div68, t19);
-    			append_dev(div68, div23);
-    			append_dev(div23, div20);
-    			append_dev(div23, t20);
-    			append_dev(div23, div22);
-    			append_dev(div22, p15);
-    			append_dev(div22, t21);
-    			append_dev(div22, div21);
-    			append_dev(div21, p16);
-    			append_dev(div21, t22);
-    			append_dev(div21, p17);
-    			append_dev(div68, t23);
-    			append_dev(div68, div27);
-    			append_dev(div27, div24);
-    			append_dev(div27, t24);
-    			append_dev(div27, div26);
-    			append_dev(div26, p18);
-    			append_dev(div26, t25);
-    			append_dev(div26, div25);
-    			append_dev(div25, p19);
-    			append_dev(div25, t26);
-    			append_dev(div25, p20);
-    			append_dev(div68, t27);
-    			append_dev(div68, div31);
-    			append_dev(div31, div28);
-    			append_dev(div31, t28);
-    			append_dev(div31, div30);
-    			append_dev(div30, p21);
-    			append_dev(div30, t29);
-    			append_dev(div30, div29);
-    			append_dev(div29, p22);
-    			append_dev(div29, t30);
-    			append_dev(div29, p23);
-    			append_dev(div68, t31);
-    			append_dev(div68, div35);
-    			append_dev(div35, div32);
-    			append_dev(div35, t32);
-    			append_dev(div35, div34);
-    			append_dev(div34, p24);
-    			append_dev(div34, t33);
-    			append_dev(div34, div33);
-    			append_dev(div33, p25);
-    			append_dev(div33, t34);
-    			append_dev(div33, p26);
-    			append_dev(div68, t35);
-    			append_dev(div68, div39);
-    			append_dev(div39, div36);
-    			append_dev(div39, t36);
-    			append_dev(div39, div38);
-    			append_dev(div38, p27);
-    			append_dev(div38, t37);
-    			append_dev(div38, div37);
-    			append_dev(div37, p28);
-    			append_dev(div37, t38);
-    			append_dev(div37, p29);
-    			append_dev(div68, t39);
-    			append_dev(div68, div43);
-    			append_dev(div43, div40);
-    			append_dev(div43, t40);
-    			append_dev(div43, div42);
-    			append_dev(div42, p30);
-    			append_dev(div42, t41);
-    			append_dev(div42, div41);
-    			append_dev(div41, p31);
-    			append_dev(div41, t42);
-    			append_dev(div41, p32);
-    			append_dev(div68, t43);
-    			append_dev(div68, div47);
-    			append_dev(div47, div44);
-    			append_dev(div47, t44);
-    			append_dev(div47, div46);
-    			append_dev(div46, p33);
-    			append_dev(div46, t45);
-    			append_dev(div46, div45);
-    			append_dev(div45, p34);
-    			append_dev(div45, t46);
-    			append_dev(div45, p35);
-    			append_dev(div68, t47);
-    			append_dev(div68, div51);
-    			append_dev(div51, div48);
-    			append_dev(div51, t48);
-    			append_dev(div51, div50);
-    			append_dev(div50, p36);
-    			append_dev(div50, t49);
-    			append_dev(div50, div49);
-    			append_dev(div49, p37);
-    			append_dev(div49, t50);
-    			append_dev(div49, p38);
-    			append_dev(div68, t51);
-    			append_dev(div68, div55);
-    			append_dev(div55, div52);
-    			append_dev(div55, t52);
-    			append_dev(div55, div54);
-    			append_dev(div54, p39);
-    			append_dev(div54, t53);
-    			append_dev(div54, div53);
-    			append_dev(div53, p40);
-    			append_dev(div53, t54);
-    			append_dev(div53, p41);
-    			append_dev(div68, t55);
-    			append_dev(div68, div59);
-    			append_dev(div59, div56);
-    			append_dev(div59, t56);
-    			append_dev(div59, div58);
-    			append_dev(div58, p42);
-    			append_dev(div58, t57);
-    			append_dev(div58, div57);
-    			append_dev(div57, p43);
-    			append_dev(div57, t58);
-    			append_dev(div57, p44);
-    			append_dev(div68, t59);
-    			append_dev(div68, div63);
-    			append_dev(div63, div60);
-    			append_dev(div63, t60);
-    			append_dev(div63, div62);
-    			append_dev(div62, p45);
-    			append_dev(div62, t61);
-    			append_dev(div62, div61);
-    			append_dev(div61, p46);
-    			append_dev(div61, t62);
-    			append_dev(div61, p47);
-    			append_dev(div68, t63);
-    			append_dev(div68, div67);
-    			append_dev(div67, div64);
-    			append_dev(div67, t64);
-    			append_dev(div67, div66);
-    			append_dev(div66, p48);
-    			append_dev(div66, t65);
-    			append_dev(div66, div65);
-    			append_dev(div65, p49);
-    			append_dev(div65, t66);
-    			append_dev(div65, p50);
-    			/*div70_binding*/ ctx[14](div70);
-    			append_dev(div73, t67);
-    			append_dev(div73, div72);
-    			append_dev(div72, button0);
-    			append_dev(button0, div71);
-    			append_dev(div71, canvas);
-    			/*canvas_binding*/ ctx[15](canvas);
-    			/*div71_binding*/ ctx[16](div71);
+    			append_dev(div73, div1);
+    			append_dev(div1, button0);
+    			append_dev(button0, div0);
+    			append_dev(div0, canvas);
+    			/*canvas_binding*/ ctx[14](canvas);
+    			/*div0_binding*/ ctx[15](div0);
     			append_dev(button0, span0);
-    			/*button0_binding*/ ctx[17](button0);
-    			append_dev(div72, t69);
-    			append_dev(div72, button1);
+    			/*button0_binding*/ ctx[16](button0);
+    			append_dev(div1, t1);
+    			append_dev(div1, button1);
     			append_dev(button1, span1);
-    			append_dev(span1, t70);
-    			/*button1_binding*/ ctx[19](button1);
+    			if_block.m(span1, null);
+    			/*button1_binding*/ ctx[18](button1);
+    			/*div1_binding*/ ctx[20](div1);
+    			append_dev(div73, t2);
+    			append_dev(div73, div72);
+    			append_dev(div72, div71);
+    			append_dev(div71, div70);
+    			append_dev(div70, div5);
+    			append_dev(div5, div2);
+    			append_dev(div5, t3);
+    			append_dev(div5, div4);
+    			append_dev(div4, p0);
+    			append_dev(div4, t4);
+    			append_dev(div4, div3);
+    			append_dev(div3, p1);
+    			append_dev(div3, t5);
+    			append_dev(div3, p2);
+    			append_dev(div70, t6);
+    			append_dev(div70, div9);
+    			append_dev(div9, div6);
+    			append_dev(div9, t7);
+    			append_dev(div9, div8);
+    			append_dev(div8, p3);
+    			append_dev(div8, t8);
+    			append_dev(div8, div7);
+    			append_dev(div7, p4);
+    			append_dev(div7, t9);
+    			append_dev(div7, p5);
+    			append_dev(div70, t10);
+    			append_dev(div70, div13);
+    			append_dev(div13, div10);
+    			append_dev(div13, t11);
+    			append_dev(div13, div12);
+    			append_dev(div12, p6);
+    			append_dev(div12, t12);
+    			append_dev(div12, div11);
+    			append_dev(div11, p7);
+    			append_dev(div11, t13);
+    			append_dev(div11, p8);
+    			append_dev(div70, t14);
+    			append_dev(div70, div17);
+    			append_dev(div17, div14);
+    			append_dev(div17, t15);
+    			append_dev(div17, div16);
+    			append_dev(div16, p9);
+    			append_dev(div16, t16);
+    			append_dev(div16, div15);
+    			append_dev(div15, p10);
+    			append_dev(div15, t17);
+    			append_dev(div15, p11);
+    			append_dev(div70, t18);
+    			append_dev(div70, div21);
+    			append_dev(div21, div18);
+    			append_dev(div21, t19);
+    			append_dev(div21, div20);
+    			append_dev(div20, p12);
+    			append_dev(div20, t20);
+    			append_dev(div20, div19);
+    			append_dev(div19, p13);
+    			append_dev(div19, t21);
+    			append_dev(div19, p14);
+    			append_dev(div70, t22);
+    			append_dev(div70, div25);
+    			append_dev(div25, div22);
+    			append_dev(div25, t23);
+    			append_dev(div25, div24);
+    			append_dev(div24, p15);
+    			append_dev(div24, t24);
+    			append_dev(div24, div23);
+    			append_dev(div23, p16);
+    			append_dev(div23, t25);
+    			append_dev(div23, p17);
+    			append_dev(div70, t26);
+    			append_dev(div70, div29);
+    			append_dev(div29, div26);
+    			append_dev(div29, t27);
+    			append_dev(div29, div28);
+    			append_dev(div28, p18);
+    			append_dev(div28, t28);
+    			append_dev(div28, div27);
+    			append_dev(div27, p19);
+    			append_dev(div27, t29);
+    			append_dev(div27, p20);
+    			append_dev(div70, t30);
+    			append_dev(div70, div33);
+    			append_dev(div33, div30);
+    			append_dev(div33, t31);
+    			append_dev(div33, div32);
+    			append_dev(div32, p21);
+    			append_dev(div32, t32);
+    			append_dev(div32, div31);
+    			append_dev(div31, p22);
+    			append_dev(div31, t33);
+    			append_dev(div31, p23);
+    			append_dev(div70, t34);
+    			append_dev(div70, div37);
+    			append_dev(div37, div34);
+    			append_dev(div37, t35);
+    			append_dev(div37, div36);
+    			append_dev(div36, p24);
+    			append_dev(div36, t36);
+    			append_dev(div36, div35);
+    			append_dev(div35, p25);
+    			append_dev(div35, t37);
+    			append_dev(div35, p26);
+    			append_dev(div70, t38);
+    			append_dev(div70, div41);
+    			append_dev(div41, div38);
+    			append_dev(div41, t39);
+    			append_dev(div41, div40);
+    			append_dev(div40, p27);
+    			append_dev(div40, t40);
+    			append_dev(div40, div39);
+    			append_dev(div39, p28);
+    			append_dev(div39, t41);
+    			append_dev(div39, p29);
+    			append_dev(div70, t42);
+    			append_dev(div70, div45);
+    			append_dev(div45, div42);
+    			append_dev(div45, t43);
+    			append_dev(div45, div44);
+    			append_dev(div44, p30);
+    			append_dev(div44, t44);
+    			append_dev(div44, div43);
+    			append_dev(div43, p31);
+    			append_dev(div43, t45);
+    			append_dev(div43, p32);
+    			append_dev(div70, t46);
+    			append_dev(div70, div49);
+    			append_dev(div49, div46);
+    			append_dev(div49, t47);
+    			append_dev(div49, div48);
+    			append_dev(div48, p33);
+    			append_dev(div48, t48);
+    			append_dev(div48, div47);
+    			append_dev(div47, p34);
+    			append_dev(div47, t49);
+    			append_dev(div47, p35);
+    			append_dev(div70, t50);
+    			append_dev(div70, div53);
+    			append_dev(div53, div50);
+    			append_dev(div53, t51);
+    			append_dev(div53, div52);
+    			append_dev(div52, p36);
+    			append_dev(div52, t52);
+    			append_dev(div52, div51);
+    			append_dev(div51, p37);
+    			append_dev(div51, t53);
+    			append_dev(div51, p38);
+    			append_dev(div70, t54);
+    			append_dev(div70, div57);
+    			append_dev(div57, div54);
+    			append_dev(div57, t55);
+    			append_dev(div57, div56);
+    			append_dev(div56, p39);
+    			append_dev(div56, t56);
+    			append_dev(div56, div55);
+    			append_dev(div55, p40);
+    			append_dev(div55, t57);
+    			append_dev(div55, p41);
+    			append_dev(div70, t58);
+    			append_dev(div70, div61);
+    			append_dev(div61, div58);
+    			append_dev(div61, t59);
+    			append_dev(div61, div60);
+    			append_dev(div60, p42);
+    			append_dev(div60, t60);
+    			append_dev(div60, div59);
+    			append_dev(div59, p43);
+    			append_dev(div59, t61);
+    			append_dev(div59, p44);
+    			append_dev(div70, t62);
+    			append_dev(div70, div65);
+    			append_dev(div65, div62);
+    			append_dev(div65, t63);
+    			append_dev(div65, div64);
+    			append_dev(div64, p45);
+    			append_dev(div64, t64);
+    			append_dev(div64, div63);
+    			append_dev(div63, p46);
+    			append_dev(div63, t65);
+    			append_dev(div63, p47);
+    			append_dev(div70, t66);
+    			append_dev(div70, div69);
+    			append_dev(div69, div66);
+    			append_dev(div69, t67);
+    			append_dev(div69, div68);
+    			append_dev(div68, p48);
+    			append_dev(div68, t68);
+    			append_dev(div68, div67);
+    			append_dev(div67, p49);
+    			append_dev(div67, t69);
+    			append_dev(div67, p50);
     			/*div72_binding*/ ctx[21](div72);
-    			append_dev(div73, t71);
+    			append_dev(div73, t70);
     			append_dev(div73, svg);
     			append_dev(svg, path0);
     			append_dev(svg, path1);
@@ -1272,8 +1372,8 @@ var app = (function () {
     			if (!mounted) {
     				dispose = [
     					listen_dev(window, "message", /*onLoad*/ ctx[12], false, false, false),
-    					listen_dev(button0, "click", /*click_handler*/ ctx[18], false, false, false),
-    					listen_dev(button1, "click", /*click_handler_1*/ ctx[20], false, false, false),
+    					listen_dev(button0, "click", /*click_handler*/ ctx[17], false, false, false),
+    					listen_dev(button1, "click", /*click_handler_1*/ ctx[19], false, false, false),
     					action_destroyer(resize.call(null, svg))
     				];
 
@@ -1281,10 +1381,6 @@ var app = (function () {
     			}
     		},
     		p: function update(ctx, [dirty]) {
-    			if (dirty & /*oppositeColor*/ 64) {
-    				set_style(div68, "color", /*oppositeColor*/ ctx[6]);
-    			}
-
     			if (dirty & /*canvasColor*/ 32) {
     				set_style(button0, "background-color", /*canvasColor*/ ctx[5]);
     			}
@@ -1297,10 +1393,16 @@ var app = (function () {
     				set_style(button0, "border-color", /*oppositeColor*/ ctx[6]);
     			}
 
-    			if (dirty & /*previewLocked*/ 256 && t70_value !== (t70_value = (/*previewLocked*/ ctx[8] ? "Locked" : "Lock") + "")) set_data_dev(t70, t70_value);
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
 
-    			if (dirty & /*canvasColor*/ 32) {
-    				set_style(button1, "background-color", /*canvasColor*/ ctx[5]);
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(span1, null);
+    				}
     			}
 
     			if (dirty & /*oppositeColor*/ 64) {
@@ -1308,7 +1410,23 @@ var app = (function () {
     			}
 
     			if (dirty & /*oppositeColor*/ 64) {
-    				set_style(button1, "border-color", /*oppositeColor*/ ctx[6]);
+    				set_style(button1, "--hover-color", hexToRgba(/*oppositeColor*/ ctx[6], 0.06));
+    			}
+
+    			if (dirty & /*oppositeColor*/ 64) {
+    				set_style(div70, "color", /*oppositeColor*/ ctx[6]);
+    			}
+
+    			if (dirty & /*oppositeColor*/ 64) {
+    				attr_dev(path0, "stroke", /*oppositeColor*/ ctx[6]);
+    			}
+
+    			if (dirty & /*oppositeColor*/ 64) {
+    				attr_dev(path1, "stroke", /*oppositeColor*/ ctx[6]);
+    			}
+
+    			if (dirty & /*oppositeColor*/ 64) {
+    				attr_dev(path2, "stroke", /*oppositeColor*/ ctx[6]);
     			}
 
     			if (dirty & /*canvasColor*/ 32) {
@@ -1319,11 +1437,12 @@ var app = (function () {
     		o: noop,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div73);
-    			/*div70_binding*/ ctx[14](null);
-    			/*canvas_binding*/ ctx[15](null);
-    			/*div71_binding*/ ctx[16](null);
-    			/*button0_binding*/ ctx[17](null);
-    			/*button1_binding*/ ctx[19](null);
+    			/*canvas_binding*/ ctx[14](null);
+    			/*div0_binding*/ ctx[15](null);
+    			/*button0_binding*/ ctx[16](null);
+    			if_block.d();
+    			/*button1_binding*/ ctx[18](null);
+    			/*div1_binding*/ ctx[20](null);
     			/*div72_binding*/ ctx[21](null);
     			/*div73_binding*/ ctx[22](null);
     			mounted = false;
@@ -1561,6 +1680,25 @@ var app = (function () {
     	element.scrollLeft = pos.left;
     }
 
+    function hexToRgba(hex, opacity) {
+    	if (hex) {
+    		var c;
+
+    		if ((/^#([A-Fa-f0-9]{3}){1,2}$/).test(hex)) {
+    			c = hex.substring(1).split('');
+
+    			if (c.length == 3) {
+    				c = [c[0], c[0], c[1], c[1], c[2], c[2]];
+    			}
+
+    			c = '0x' + c.join('');
+    			return 'rgba(' + [c >> 16 & 255, c >> 8 & 255, c & 255].join(',') + ',' + opacity + ')';
+    		}
+
+    		throw new Error('Bad Hex');
+    	}
+    }
+
     function createSvg(svgString) {
     	var container = document.createElement('div');
     	container.innerHTML = String.fromCharCode.apply(null, svgString);
@@ -1578,6 +1716,7 @@ var app = (function () {
     	const name = '';
     	let root;
     	let toolbar;
+    	let actionbar;
     	let message;
     	let canvas2;
     	let thumbnail;
@@ -1710,13 +1849,6 @@ var app = (function () {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	function div70_binding($$value) {
-    		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
-    			thumbnailWrapper = $$value;
-    			$$invalidate(7, thumbnailWrapper);
-    		});
-    	}
-
     	function canvas_binding($$value) {
     		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
     			canvas2 = $$value;
@@ -1724,7 +1856,7 @@ var app = (function () {
     		});
     	}
 
-    	function div71_binding($$value) {
+    	function div0_binding($$value) {
     		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
     			thumbnail = $$value;
     			$$invalidate(3, thumbnail);
@@ -1753,10 +1885,17 @@ var app = (function () {
     		lockPreview();
     	};
 
+    	function div1_binding($$value) {
+    		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
+    			actionbar = $$value;
+    			$$invalidate(1, actionbar);
+    		});
+    	}
+
     	function div72_binding($$value) {
     		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
-    			toolbar = $$value;
-    			$$invalidate(1, toolbar);
+    			thumbnailWrapper = $$value;
+    			$$invalidate(7, thumbnailWrapper);
     		});
     	}
 
@@ -1771,6 +1910,7 @@ var app = (function () {
     		name,
     		root,
     		toolbar,
+    		actionbar,
     		message,
     		canvas2,
     		thumbnail,
@@ -1791,13 +1931,15 @@ var app = (function () {
     		getCorrectTextColor,
     		postScrollPos,
     		setScrollPos,
+    		hexToRgba,
     		createSvg,
     		onLoad
     	});
 
     	$$self.$inject_state = $$props => {
     		if ('root' in $$props) $$invalidate(0, root = $$props.root);
-    		if ('toolbar' in $$props) $$invalidate(1, toolbar = $$props.toolbar);
+    		if ('toolbar' in $$props) toolbar = $$props.toolbar;
+    		if ('actionbar' in $$props) $$invalidate(1, actionbar = $$props.actionbar);
     		if ('message' in $$props) message = $$props.message;
     		if ('canvas2' in $$props) $$invalidate(2, canvas2 = $$props.canvas2);
     		if ('thumbnail' in $$props) $$invalidate(3, thumbnail = $$props.thumbnail);
@@ -1816,7 +1958,7 @@ var app = (function () {
 
     	return [
     		root,
-    		toolbar,
+    		actionbar,
     		canvas2,
     		thumbnail,
     		preview,
@@ -1829,13 +1971,13 @@ var app = (function () {
     		lockPreview,
     		onLoad,
     		name,
-    		div70_binding,
     		canvas_binding,
-    		div71_binding,
+    		div0_binding,
     		button0_binding,
     		click_handler,
     		button1_binding,
     		click_handler_1,
+    		div1_binding,
     		div72_binding,
     		div73_binding
     	];
@@ -1859,7 +2001,7 @@ var app = (function () {
     	}
 
     	set name(value) {
-    		throw new Error("<App>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    		throw new Error_1("<App>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
     	}
     }
 
