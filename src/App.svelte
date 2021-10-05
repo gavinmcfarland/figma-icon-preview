@@ -417,7 +417,7 @@
 		<div bind:this={thumbnailWrapper}  class="preview-window">
 		<!-- Empty divs to prevent layout changing when loading thumbnails -->
 				<div  class="thumbnail-wrapper">
-				<div id="thumbnails" style="color: {oppositeColor}">
+				<div id="thumbnails" style="color: {oppositeColor}; --border-color: {hexToRgba(oppositeColor, 0.07)}">
 					<div>
 						<div></div>
 						<div class="icon__info">
@@ -697,6 +697,7 @@
 	.preview-window {
 		/* flex-grow: 1; */
 		overflow-y: scroll;
+		margin-bottom: -1px;
 		/* scroll-snap-type: y mandatory; */
 	}
 
@@ -707,6 +708,7 @@
 	#thumbnails {
 		display: flex;
     	flex-wrap: wrap;
+    	margin-bottom: -1px;
 	}
 
 	#thumbnails > * {
@@ -1548,8 +1550,8 @@
 	}
 
 	#thumbnails>* {
-		border-bottom: 1px solid rgba(194, 194, 194, 0.3);
-		border-right: 1px solid rgba(194, 194, 194, 0.3);
+		border-bottom: 1px solid var(--border-color);
+		border-right: 1px solid var(--border-color);
 		box-sizing: border-box;
 		flex-grow: 0;
 		height: var(--icon-width);
