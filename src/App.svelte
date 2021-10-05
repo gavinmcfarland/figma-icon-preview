@@ -14,6 +14,8 @@
 	let oppositeColor;
 	let selectedIconThumbnail
 	let thumbnailWrapper
+	let previewLocked = false
+	let lockButton
 
 
 	function resize(node, event) {
@@ -84,6 +86,19 @@
 	function setPreview() {
 		selectedIconThumbnail = undefined
 		parent.postMessage({ pluginMessage: { type: 'set-preview' } }, '*')
+	}
+
+	function lockPreview() {
+		selectedIconThumbnail = undefined
+
+		if (previewLocked) {
+			previewLocked = false
+		}
+		else {
+			previewLocked = true
+		}
+
+		parent.postMessage({ pluginMessage: { type: 'lock-preview', locked: previewLocked } }, '*')
 	}
 
 	// onMount(() => {
@@ -198,7 +213,7 @@
 
 			*/
 
-			var threshold = 130; /* about half of 256. Lower threshold equals more dark text on dark background  */
+			var threshold = 160; /* about half of 256. Lower threshold equals more dark text on dark background  */
 
 			var hRed = hexToR(hex);
 			var hGreen = hexToG(hex);
@@ -259,6 +274,8 @@
 	async function onLoad(event) {
 		message = await event.data.pluginMessage;
 
+		// previewLocked = message.previewLocked
+
 		const thumbnails = root.querySelector('#thumbnails')
 
 		if (thumbnailWrapper && message.scrollPos) {
@@ -296,17 +313,19 @@
 				else {
 					preview.classList.remove('show')
 				}
+
+
+
+
+
 			if (message) {
 
-
-
-
+				var canvas
+				if (message.currentIconThumbnail) {
+					canvas = createSvg(message.currentIconThumbnail)
+				}
 
 				if (message.thumbnails) {
-					var canvas
-					if (message.currentIconThumbnail) {
-						canvas = createSvg(message.currentIconThumbnail)
-					}
 
 					for (let i = 0; i < message.thumbnails.length; i++) {
 						if (thumbnails.children[i]) {
@@ -544,6 +563,10 @@
 			<button id="refresh" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{preview}" on:click={() => {
 						setPreview();
 					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Swap</span></button>
+
+			<button id="lock" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{lockButton}" on:click={() => {
+						lockPreview();
+					}} class="lockButton button button--secondary"><span style="white-space: nowrap;">{previewLocked ? "Locked" : "Lock"}</span></button>
 		</div>
 
 		<svg id="corner" use:resize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1597,14 +1620,14 @@
 	.icon__info>*> :nth-child(1) {
 		text-align: right;
 		/* margin-right: -4px; */
-		opacity: 0.3;
+		opacity: 0.5;
 	}
 
 	.icon__info>*> :nth-child(2) {
 		position: absolute;
 		left: 0;
 		top: 0;
-		opacity: 0.3;
+		opacity: 0.5;
 		/* margin-left: -4px; */
 	}
 
@@ -1628,6 +1651,14 @@
 		width: 88px;
 		margin-left: auto;
 		display: none;
+		justify-content: center;
+		pointer-events: auto;
+	}
+
+	.lockButton {
+		padding: 8px;
+		width: 72px;
+		margin-left: auto;
 		justify-content: center;
 		pointer-events: auto;
 	}

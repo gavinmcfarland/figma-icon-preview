@@ -1,1 +1,329 @@
-"use strict";function e(e,i){return figma.clientStorage.setAsync(e,i)}const i=[];function n(e){var i=(e=Math.floor(255*e)).toString(16);return 1==i.length?"0"+i:i}figma.ui.onmessage=e=>{for(let n of i)e.action===n.action&&n.callback(e.data)},console.clear();var t,a,o,r=[{size:16,group:"General"},{size:24,group:"General"},{size:32,group:"General"},{size:48,group:"General"},{size:64,group:"General"},{size:96,group:"General"},{size:128,group:"General"},{size:20,group:"iOS",label:"Notification"},{size:29,group:"iOS",label:"Settings"},{size:40,group:"iOS",label:"Spotlight"},{size:60,group:"iOS",label:"iPhone"},{size:76,group:"iOS",label:"iPad"},{size:83.5,group:"iOS",label:"iPad Pro"},{size:16,group:"Android",label:"Small Contextual"},{size:22,group:"Android",label:"Notification"},{size:24,group:"Android",label:"System"},{size:48,group:"Android",label:"Product"}];function s(e){return"FRAME"===e.type||"GROUP"===e.type||"COMPONENT"===e.type||"INSTANCE"===e.type}function l(e){return e.height<=512&&e.width<=512}async function c(e,i,n){var t;return e.children.length>0&&e.visible&&function(e){for(var i=e.children.length,n=0,t=0;t<e.children.length;t++)e.children[t].visible||n++;if(i!==n)return!0}(e)&&(t=await e.exportAsync({format:"SVG"})),t}async function g(e,i){if(e){(t={thumbnails:[]}).currentIconThumbnail=await c(e);for(let e=0;e<r.length;e++)t.thumbnails.push({}),t.thumbnails[e].size=r[e].size,t.thumbnails[e].group=r[e].group,t.thumbnails[e].label=r[e].label;return t.name=e.name,t}}async function u(e){if(e)return await c(e,e.width)}function f(){var e=function(e){if(e){let{r:i,g:t,b:a}=e;return"#"+n(i)+n(t)+n(a)}}(figma.currentPage.backgrounds[0].color);return"#e5e5e5"!==e?e:"#ffffff"}function m(e){if(e.width===e.height)return e}function h(e){if(e&&m(e)&&l(e)&&s(e))return e}var p,d={width:528,height:352},b={top:0,left:0};o=figma.currentPage.selection[0],figma.clientStorage.getAsync("uiSize").then((i=>{i||(e("uiSize",d),i=d),figma.clientStorage.getAsync("scrollPos").then((n=>{var t,c,d,P;n||(e("scrollPos",b),n=b),1===figma.currentPage.selection.length?l(figma.currentPage.selection[0])?s(figma.currentPage.selection[0])?m(figma.currentPage.selection[0])?(figma.showUI(__html__,i),a=figma.currentPage.selection[0],u(figma.currentPage.selection[0]).then((e=>{g(a).then((i=>{var t;figma.currentPage.selection[0].id!==a.id&&(t=e),figma.ui.postMessage(Object.assign(Object.assign({},i),{selectedIconThumbnail:t,canvasColor:f(),scrollPos:n}))}))}))):figma.closePlugin("Selection must be square"):figma.closePlugin("Selection must be a frame, group, component or instance"):figma.closePlugin("Icon must be 256px or smaller"):0===figma.currentPage.selection.length?figma.closePlugin("Select an icon"):figma.closePlugin("Select one icon at a time"),figma.on("selectionchange",(()=>{1===figma.currentPage.selection.length&&!function(e,i){if(i&&e)return i.findOne((i=>i.id===e.id))}(figma.currentPage.selection[0],a)?h(figma.currentPage.selection[0])?(o=figma.currentPage.selection[0],1===figma.currentPage.selection.length&&h(figma.currentPage.selection[0])&&u(o).then((e=>{var i;figma.currentPage.selection[0].id!==a.id?(i=e,p=e):(i=void 0,p=void 0),figma.ui.postMessage({selectedIconThumbnail:i})}))):p=void 0:(p=void 0,figma.ui.postMessage({selectedIconThumbnail:void 0}))})),(t=function(){setInterval((()=>{a&&figma.getNodeById(a.id)?g(a).then((e=>{figma.ui.postMessage(Object.assign(Object.assign({},e),{selectedIconThumbnail:p,canvasColor:f()}))})):figma.ui.postMessage({currentIconThumnail:void 0,thumbnails:r,canvasColor:f()})}),600)},c=2e3,function(){var e=this,i=arguments,n=function(){P=null,d||t.apply(e,i)},a=d&&!P;clearTimeout(P),P=setTimeout(n,c),a&&t.apply(e,i)})()}))})).catch((()=>{})),figma.ui.onmessage=e=>{"set-preview"===e.type&&(p=void 0,a=(o=void 0)||figma.currentPage.selection[0],u(o).then((e=>{g(a).then((i=>{figma.ui.postMessage(Object.assign(Object.assign({},i),{selectedIconThumbnail:e}))}))}))),"resize"===e.type&&(figma.ui.resize(e.size.width,e.size.height),figma.clientStorage.setAsync("uiSize",e.size).catch((e=>{}))),"scroll-position"===e.type&&figma.clientStorage.setAsync("scrollPos",e.pos).catch((e=>{}))};
+'use strict';
+
+/**
+ * Helpers which make it easier to update client storage
+ */
+async function getClientStorageAsync(key) {
+  return await figma.clientStorage.getAsync(key);
+}
+function setClientStorageAsync(key, data) {
+  return figma.clientStorage.setAsync(key, data);
+}
+
+const eventListeners = [];
+
+figma.ui.onmessage = message => {
+  for (let eventListener of eventListeners) {
+    if (message.action === eventListener.action) eventListener.callback(message.data);
+  }
+};
+
+console.clear();
+function componentToHex(c) {
+    c = Math.floor(c * 255);
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+function rgbToHex(rgb) {
+    if (rgb) {
+        let { r, g, b } = rgb;
+        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+    }
+}
+var thumbnailSettings = [
+    {
+        size: 16,
+        group: "General"
+    },
+    {
+        size: 24,
+        group: "General"
+    },
+    {
+        size: 32,
+        group: "General"
+    },
+    {
+        size: 48,
+        group: "General"
+    },
+    {
+        size: 64,
+        group: "General"
+    },
+    {
+        size: 96,
+        group: "General"
+    },
+    {
+        size: 128,
+        group: "General"
+    },
+    {
+        size: 20,
+        group: "iOS",
+        label: "Notification"
+    },
+    {
+        size: 29,
+        group: "iOS",
+        label: "Settings"
+    },
+    {
+        size: 40,
+        group: "iOS",
+        label: "Spotlight"
+    },
+    {
+        size: 60,
+        group: "iOS",
+        label: "iPhone"
+    },
+    {
+        size: 76,
+        group: "iOS",
+        label: "iPad"
+    },
+    {
+        size: 83.5,
+        group: "iOS",
+        label: "iPad Pro"
+    },
+    {
+        size: 16,
+        group: "Android",
+        label: "Small Contextual"
+    },
+    {
+        size: 22,
+        group: "Android",
+        label: "Notification"
+    },
+    {
+        size: 24,
+        group: "Android",
+        label: "System"
+    },
+    {
+        size: 48,
+        group: "Android",
+        label: "Product"
+    }
+];
+function isBox(node) {
+    return node.type === "FRAME" || node.type === "GROUP" || node.type === "COMPONENT" || node.type === "INSTANCE";
+}
+// Check size to avoid exporting too large a preview
+function isSmall(node) {
+    return node.height <= 512 && node.width <= 512;
+}
+var currentIcon, selectedIcon;
+function isChildrenVisible(node) {
+    var numberChildren = node.children.length;
+    var numberChildrenHidden = 0;
+    for (var i = 0; i < node.children.length; i++) {
+        var child = node.children[i];
+        if (!child.visible)
+            numberChildrenHidden++;
+    }
+    if (numberChildren !== numberChildrenHidden) {
+        return true;
+    }
+}
+async function generateThumbnail(node) {
+    var image;
+    if (node.children.length > 0 && node.visible && isChildrenVisible(node)) {
+        image = await node.exportAsync({
+            format: "SVG"
+        });
+    }
+    return image;
+}
+async function getCurrentIconImage(node) {
+    // currentIconThumbnail
+    return await generateThumbnail(node);
+}
+// async function getCurrentIconImage(node, refresh?) {
+// 	if (node) {
+// 		message = {
+// 			thumbnails: []
+// 		}
+// 		message.currentIconThumbnail = await generateThumbnail(node)
+// 		for (let i = 0; i < thumbnailSettings.length; i++) {
+// 			message.thumbnails.push({})
+// 			message.thumbnails[i].size = thumbnailSettings[i].size
+// 			message.thumbnails[i].group = thumbnailSettings[i].group
+// 			message.thumbnails[i].label = thumbnailSettings[i].label
+// 		}
+// 		return message
+// 	}
+// }
+async function getSelectedIconImage(node) {
+    if (node) {
+        return await generateThumbnail(node, node.width);
+    }
+}
+function getCanvasColor() {
+    var hex = rgbToHex(figma.currentPage.backgrounds[0].color);
+    if (hex !== "#e5e5e5") {
+        return hex;
+    }
+    else {
+        return "#ffffff";
+    }
+}
+function isSquare(node) {
+    if (node.width === node.height) {
+        return node;
+    }
+}
+function isIcon(node) {
+    if (node) {
+        if (isSquare(node)
+            && isSmall(node)
+            && isBox(node)) {
+            return node;
+        }
+    }
+}
+function isInsideContainer(node, container) {
+    if (container && node) {
+        return container.findOne(n => n.id === node.id);
+    }
+}
+function setCurrentIcon() {
+    currentIcon = figma.currentPage.selection[0];
+}
+selectedIcon = figma.currentPage.selection[0];
+var cachedScrollPos;
+var cachedUiSize;
+var cachedPreviewLocked;
+// restore previous size
+async function main() {
+    var uiSize = await getClientStorageAsync('uiSize') || { width: 176 * 3, height: 352 };
+    var scrollPos = await getClientStorageAsync('scrollPos') || { top: 0, left: 0 };
+    cachedUiSize = uiSize;
+    cachedScrollPos = cachedUiSize;
+    if (figma.currentPage.selection.length === 1) {
+        if (isSmall(figma.currentPage.selection[0])) {
+            if (isBox(figma.currentPage.selection[0])) {
+                if (isSquare(figma.currentPage.selection[0])) {
+                    figma.showUI(__html__, uiSize);
+                    setCurrentIcon();
+                    getSelectedIconImage(figma.currentPage.selection[0]).then((selectedImage) => {
+                        getCurrentIconImage(currentIcon).then((currentImage) => {
+                            var selectedIconThumbnail;
+                            if (figma.currentPage.selection[0].id !== currentIcon.id) {
+                                selectedIconThumbnail = selectedImage;
+                            }
+                            figma.ui.postMessage({ thumbnails: thumbnailSettings, currentIconThumbnail: currentImage, selectedIconThumbnail, canvasColor: getCanvasColor(), scrollPos });
+                        });
+                    });
+                }
+                else {
+                    figma.closePlugin("Selection must be square");
+                }
+            }
+            else {
+                figma.closePlugin("Selection must be a frame, group, component or instance");
+            }
+        }
+        else {
+            figma.closePlugin("Icon must be 256px or smaller");
+        }
+    }
+    else if (figma.currentPage.selection.length === 0) {
+        figma.closePlugin("Select an icon");
+    }
+    else {
+        figma.closePlugin("Select one icon at a time");
+    }
+    figma.on('selectionchange', () => {
+        if (figma.currentPage.selection.length === 1) {
+            if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
+                figma.ui.postMessage({
+                    selectedIconThumbnail: undefined
+                });
+            }
+            else {
+                if (isIcon(figma.currentPage.selection[0])) {
+                    selectedIcon = figma.currentPage.selection[0];
+                    if (figma.currentPage.selection.length === 1) {
+                        if (isIcon(figma.currentPage.selection[0])) {
+                            getSelectedIconImage(selectedIcon).then((selectedImage) => {
+                                if (figma.currentPage.selection[0].id !== currentIcon.id) ;
+                                if (!cachedPreviewLocked) {
+                                    setCurrentIcon();
+                                    figma.ui.postMessage({
+                                        // selectedIconThumbnail,
+                                        currentIconThumbnail: selectedImage,
+                                        thumbnails: thumbnailSettings
+                                    });
+                                }
+                                // else {
+                                // 	figma.ui.postMessage({
+                                // 		// selectedIconThumbnail,
+                                // 		thumbnails: thumbnailSettings
+                                // 	})
+                                // }
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            // getSelectedIconImage(selectedIcon).then((selectedImage) => {
+            figma.ui.postMessage({
+                selectedIconThumbnail: undefined
+            });
+            // })
+        }
+    });
+    setInterval(() => {
+        if (currentIcon && figma.getNodeById(currentIcon.id)) {
+            getCurrentIconImage(currentIcon).then((currentImage) => {
+                figma.ui.postMessage({
+                    thumbnails: thumbnailSettings,
+                    currentIconThumbnail: currentImage,
+                    // selectedIconThumbnail: cachedSelectedThumbnail,
+                    canvasColor: getCanvasColor()
+                });
+            });
+        }
+        else {
+            figma.ui.postMessage({ currentIconThumnail: undefined, thumbnails: thumbnailSettings, canvasColor: getCanvasColor() });
+        }
+    }, 250);
+}
+main();
+figma.ui.onmessage = msg => {
+    if (msg.type === 'set-preview') {
+        selectedIcon = undefined;
+        if (selectedIcon) {
+            currentIcon = selectedIcon;
+        }
+        else {
+            currentIcon = figma.currentPage.selection[0];
+        }
+        getSelectedIconImage(selectedIcon).then((selectedImage) => {
+            getCurrentIconImage(currentIcon).then((currentImage) => {
+                figma.ui.postMessage({ thumbnails: thumbnailSettings, currentIconThumbnail: currentImage, selectedIconThumbnail: selectedImage });
+            });
+        });
+    }
+    if (msg.type === 'lock-preview') {
+        cachedPreviewLocked = msg.locked;
+    }
+    if (msg.type === 'resize') {
+        figma.ui.resize(msg.size.width, msg.size.height);
+        cachedUiSize = msg.size;
+    }
+    if (msg.type === 'scroll-position') {
+        cachedScrollPos = msg.pos;
+    }
+};
+figma.on('close', () => {
+    setClientStorageAsync('uiSize', cachedUiSize);
+    setClientStorageAsync('scrollPos', cachedScrollPos);
+});
