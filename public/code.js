@@ -19,6 +19,7 @@ figma.ui.onmessage = message => {
 };
 
 // FIXME: When all sub children of a node are invisible export fails
+// TODO: Look for canvas color up the tree of frames
 console.clear();
 function componentToHex(c) {
     c = Math.floor(c * 255);
@@ -112,7 +113,7 @@ var thumbnailSettings = [
     }
 ];
 function isBox(node) {
-    return node.type === "FRAME" || node.type === "GROUP" || node.type === "COMPONENT" || node.type === "INSTANCE";
+    return node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE";
 }
 // Check size to avoid exporting too large a preview
 function isSmall(node) {
