@@ -149,7 +149,9 @@ function getNearestIcon(node) {
         return node;
     }
     else {
-        return getNearestIcon(node.parent);
+        if (node.parent) {
+            return getNearestIcon(node.parent);
+        }
     }
 }
 // async function getCurrentIconImage(node, refresh?) {
