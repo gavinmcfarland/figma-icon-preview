@@ -417,7 +417,7 @@
 		<div bind:this={thumbnailWrapper}  class="preview-window">
 		<!-- Empty divs to prevent layout changing when loading thumbnails -->
 				<div  class="thumbnail-wrapper">
-				<div id="thumbnails" style="color: {oppositeColor}; --border-color: {hexToRgba(oppositeColor, 0.07)}">
+				<div id="thumbnails" style="color: {oppositeColor}; --border-color: {hexToRgba(oppositeColor, 0.07)}; --group-color: {hexToRgba(oppositeColor, 0.8)}" >
 					<div>
 						<div></div>
 						<div class="icon__info">
@@ -707,7 +707,7 @@
 	}
 
 	#thumbnails {
-		display: flex;
+		/* display: flex; */
     	flex-wrap: wrap;
     	margin-bottom: -1px;
 	}
@@ -1534,7 +1534,7 @@
 	/* CUSTOM CSS */
 
 	:root {
-		--icon-width: 176px;
+		--icon-width: 128px;
 	}
 
 	html {
@@ -1547,7 +1547,7 @@
 		/* margin-right: -1px; */
 		/* overflow-y: scroll; */
 		/* overflow-x: hidden; */
-		display: flex;
+		/* display: flex; */
 	}
 
 	#thumbnails>* {
@@ -1555,7 +1555,8 @@
 		border-right: 1px solid var(--border-color);
 		box-sizing: border-box;
 		flex-grow: 0;
-		height: var(--icon-width);
+		/* min-height: 152px; */
+		height: 50vh;
 		display: grid;
 		place-items: center;
 		position: relative;
@@ -1571,10 +1572,18 @@
 
 	}
 
-	@media (min-width: 320px) {
+	@media (max-height: 240px) {
+		#thumbnails>* {
+			height: 100vh;
+		}
+
+	}
+
+	@media (min-width: 280px) {
 
 		#thumbnails>* {
 			width: calc(100% / 2);
+
 		}
 
 	}
@@ -1586,6 +1595,13 @@
 
 	}
 
+	@media (min-height: 480px) {
+		#thumbnails>* {
+			height: 33.33333vh;
+		}
+
+	}
+
 	@media (min-width: 740px) {
 		#thumbnails>* {
 			width: calc(100% / 4);
@@ -1593,16 +1609,23 @@
 
 	}
 
-	@media (min-width: 920px) {
+	@media (min-height: 740px) {
 		#thumbnails>* {
-			width: calc(100% / 5);
+			height: 25vh;
 		}
 
 	}
 
-	@media (min-width: 1220px) {
+	/* @media (min-width: 920px) {
 		#thumbnails>* {
-			width: calc(100% / 6);
+			width: calc(100% / 5);
+		}
+
+	} */
+
+	@media (min-width: 1100px) {
+		#thumbnails>* {
+			width: calc(100% / 5);
 		}
 
 	}
@@ -1645,18 +1668,24 @@
 		border: 2px solid var(--blue);
 	}
 
+	#thumbnails {
+		position: relative;
+	}
+
 	.icon__info {
 		position: absolute;
 		top: 12px;
 		left: 12px;
 		bottom: 12px;
 		right: 12px;
+		user-select: none;
 	}
 
+	/* TODO: needs work */
 	.icon__info> :nth-child(1) {
-		position: absolute;
-		top: 0;
+		top: 12px;
 		/* color: var(--black); */
+		color: var(--group-color);
 	}
 
 	.icon__info> :nth-child(2) {
@@ -1715,6 +1744,10 @@
 
 	.lockButton:hover {
 		background-color: var(--hover-color);
+	}
+
+	.first {
+		/* clear: left; */
 	}
 
 	.show {

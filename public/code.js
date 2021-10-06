@@ -230,7 +230,7 @@ var cachedUiSize;
 var cachedPreviewLocked;
 // restore previous size
 async function main() {
-    var uiSize = await getClientStorageAsync('uiSize') || { width: 176 * 3, height: 352 };
+    var uiSize = await getClientStorageAsync('uiSize') || { width: 328, height: 254 };
     var scrollPos = await getClientStorageAsync('scrollPos') || { top: 0, left: 0 };
     cachedUiSize = uiSize;
     cachedScrollPos = cachedUiSize;
@@ -240,6 +240,7 @@ async function main() {
                 if (isSquare(figma.currentPage.selection[0])) {
                     figma.showUI(__html__, uiSize);
                     setCurrentIcon();
+                    // currentIcon.setRelaunchData({ previewIcon: 'Preview the currently selected icon' })
                     getSelectedIconImage(figma.currentPage.selection[0]).then((selectedImage) => {
                         getCurrentIconImage(currentIcon).then((currentImage) => {
                             var selectedIconThumbnail;
@@ -317,6 +318,9 @@ async function main() {
     }, 375);
 }
 main();
+if (figma.command === "previewIcon") {
+    main();
+}
 figma.ui.onmessage = msg => {
     if (msg.type === 'set-preview') {
         if (figma.currentPage.selection.length === 0) {
