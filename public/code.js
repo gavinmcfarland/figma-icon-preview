@@ -18,6 +18,7 @@ figma.ui.onmessage = message => {
   }
 };
 
+// FIXME: When all sub children of a node are invisible export fails
 console.clear();
 function componentToHex(c) {
     c = Math.floor(c * 255);
@@ -310,7 +311,7 @@ async function main() {
         else {
             figma.ui.postMessage({ currentIconThumnail: undefined, thumbnails: thumbnailSettings, canvasColor: getCanvasColor() });
         }
-    }, 250);
+    }, 375);
 }
 main();
 figma.ui.onmessage = msg => {

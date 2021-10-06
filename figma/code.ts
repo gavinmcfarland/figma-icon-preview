@@ -1,5 +1,8 @@
 import { getClientStorageAsync, setClientStorageAsync } from '@figlets/helpers'
 
+// FIXME: When all sub children of a node are invisible export fails
+
+
 console.clear()
 
 function componentToHex(c) {
@@ -378,7 +381,7 @@ async function main() {
 			figma.ui.postMessage({ currentIconThumnail: undefined, thumbnails: thumbnailSettings, canvasColor: getCanvasColor() })
 		}
 
-	}, 250)
+	}, 375 )
 
 }
 
