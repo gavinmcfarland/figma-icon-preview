@@ -661,6 +661,7 @@
 		flex-direction: column;
 		margin-right: -1px;
 		margin-bottom: -1px;
+		overflow: hidden;
 	}
 
 	:global(*) {
