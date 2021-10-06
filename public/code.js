@@ -1,1 +1,352 @@
-"use strict";async function e(e){return await figma.clientStorage.getAsync(e)}function i(e,i){return figma.clientStorage.setAsync(e,i)}const n=[];function t(e){var i=(e=Math.floor(255*e)).toString(16);return 1==i.length?"0"+i:i}figma.ui.onmessage=e=>{for(let i of n)e.action===i.action&&i.callback(e.data)},console.clear();var a,r,o,c,l,s=[{size:16,group:"General"},{size:24,group:"General"},{size:32,group:"General"},{size:48,group:"General"},{size:64,group:"General"},{size:96,group:"General"},{size:128,group:"General"},{size:20,group:"iOS",label:"Notification"},{size:29,group:"iOS",label:"Settings"},{size:40,group:"iOS",label:"Spotlight"},{size:60,group:"iOS",label:"iPhone"},{size:76,group:"iOS",label:"iPad"},{size:83.5,group:"iOS",label:"iPad Pro"},{size:16,group:"Android",label:"Small Contextual"},{size:22,group:"Android",label:"Notification"},{size:24,group:"Android",label:"System"},{size:48,group:"Android",label:"Product"}];function g(e){return"FRAME"===e.type||"COMPONENT"===e.type||"INSTANCE"===e.type}function u(e){return e.height<=512&&e.width<=512}async function f(e){var i;return e.children&&e.children.length>0&&e.visible&&function(e){for(var i=e.children.length,n=0,t=0;t<e.children.length;t++)e.children[t].visible||n++;if(i!==n)return!0}(e)&&(i=await e.exportAsync({format:"SVG"})),i}async function m(e){return await f(e)}function h(e){return b(e)?e:e.parent?h(e.parent):void 0}async function p(e){if(e)return await f(e,e.width)}function d(){var e=function(e){if(e){let{r:i,g:n,b:a}=e;return"#"+t(i)+t(n)+t(a)}}(figma.currentPage.backgrounds[0].color);return"#e5e5e5"!==e?e:"#ffffff"}function P(e){if(e.width===e.height)return e}function b(e){if(e&&P(e)&&u(e)&&g(e))return e}function v(e){a=e||figma.currentPage.selection[0]}function z(e){p(e).then((i=>{l||(v(e),figma.ui.postMessage({currentIconThumbnail:i,thumbnails:s}))}))}async function S(){var i=await e("uiSize")||{width:328,height:294},n=await e("scrollPos")||{top:0,left:0};o=c=i,1===figma.currentPage.selection.length?u(figma.currentPage.selection[0])?g(figma.currentPage.selection[0])?P(figma.currentPage.selection[0])?(figma.showUI(__html__,i),v(),a.setRelaunchData({previewIcon:"Preview the currently selected icon"}),p(figma.currentPage.selection[0]).then((e=>{m(a).then((i=>{var t;figma.currentPage.selection[0].id!==a.id&&(t=e),figma.ui.postMessage({thumbnails:s,currentIconThumbnail:i,selectedIconThumbnail:t,canvasColor:d(),scrollPos:n})}))}))):figma.closePlugin("Selection must be square"):figma.closePlugin("Selection must be a frame, group, component or instance"):figma.closePlugin("Icon must be 256px or smaller"):0===figma.currentPage.selection.length?figma.closePlugin("Select an icon"):figma.closePlugin("Select one icon at a time"),figma.on("selectionchange",(()=>{if(1===figma.currentPage.selection.length)if(function(e,i){if(i&&e&&("FRAME"===i||"GROUP"===i||"INSTANCE"===i||"COMPONENT"===i))return i.findOne((i=>i.id===e.id))}(figma.currentPage.selection[0],a))figma.ui.postMessage({selectedIconThumbnail:void 0});else if(b(figma.currentPage.selection[0]))r=figma.currentPage.selection[0],1===figma.currentPage.selection.length&&b(figma.currentPage.selection[0])&&z(r);else{var e=h(figma.currentPage.selection[0]);e&&z(e)}else figma.ui.postMessage({selectedIconThumbnail:void 0})})),setInterval((()=>{a&&figma.getNodeById(a.id)?m(a).then((e=>{figma.ui.postMessage({thumbnails:s,currentIconThumbnail:e,canvasColor:d()})})):figma.ui.postMessage({currentIconThumnail:void 0,thumbnails:s,canvasColor:d()})}),375)}r=figma.currentPage.selection[0],S(),"previewIcon"===figma.command&&S(),figma.ui.onmessage=e=>{if("set-preview"===e.type&&0===figma.currentPage.selection.length&&z(figma.currentPage.selection[0]),"lock-preview"===e.type){if(!e.locked&&1===figma.currentPage.selection.length){var i=h(figma.currentPage.selection[0]);i&&z(i)}l=e.locked}"resize"===e.type&&(figma.ui.resize(e.size.width,e.size.height),c=e.size),"scroll-position"===e.type&&(o=e.pos)},figma.on("close",(()=>{i("uiSize",c),i("scrollPos",o)}));
+'use strict';
+
+/**
+ * Helpers which make it easier to update client storage
+ */
+async function getClientStorageAsync(key) {
+  return await figma.clientStorage.getAsync(key);
+}
+function setClientStorageAsync(key, data) {
+  return figma.clientStorage.setAsync(key, data);
+}
+
+const eventListeners = [];
+
+figma.ui.onmessage = message => {
+  for (let eventListener of eventListeners) {
+    if (message.action === eventListener.action) eventListener.callback(message.data);
+  }
+};
+
+// FIXME: When all sub children of a node are invisible export fails
+// TODO: Look for canvas color up the tree of frames
+console.clear();
+function componentToHex(c) {
+    c = Math.floor(c * 255);
+    var hex = c.toString(16);
+    return hex.length == 1 ? "0" + hex : hex;
+}
+function rgbToHex(rgb) {
+    if (rgb) {
+        let { r, g, b } = rgb;
+        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+    }
+}
+var thumbnailSettings = [
+    {
+        size: 16,
+        group: "General"
+    },
+    {
+        size: 24,
+        group: "General"
+    },
+    {
+        size: 32,
+        group: "General"
+    },
+    {
+        size: 48,
+        group: "General"
+    },
+    {
+        size: 64,
+        group: "General"
+    },
+    {
+        size: 96,
+        group: "General"
+    },
+    {
+        size: 128,
+        group: "General"
+    },
+    {
+        size: 20,
+        group: "iOS",
+        label: "Notification"
+    },
+    {
+        size: 29,
+        group: "iOS",
+        label: "Settings"
+    },
+    {
+        size: 40,
+        group: "iOS",
+        label: "Spotlight"
+    },
+    {
+        size: 60,
+        group: "iOS",
+        label: "iPhone"
+    },
+    {
+        size: 76,
+        group: "iOS",
+        label: "iPad"
+    },
+    {
+        size: 83.5,
+        group: "iOS",
+        label: "iPad Pro"
+    },
+    {
+        size: 16,
+        group: "Android",
+        label: "Small Contextual"
+    },
+    {
+        size: 22,
+        group: "Android",
+        label: "Notification"
+    },
+    {
+        size: 24,
+        group: "Android",
+        label: "System"
+    },
+    {
+        size: 48,
+        group: "Android",
+        label: "Product"
+    }
+];
+function isBox(node) {
+    return node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE";
+}
+// Check size to avoid exporting too large a preview
+function isSmall(node) {
+    return node.height <= 512 && node.width <= 512;
+}
+var currentIcon, selectedIcon;
+function isChildrenVisible(node) {
+    var numberChildren = node.children.length;
+    var numberChildrenHidden = 0;
+    for (var i = 0; i < node.children.length; i++) {
+        var child = node.children[i];
+        if (!child.visible)
+            numberChildrenHidden++;
+    }
+    if (numberChildren !== numberChildrenHidden) {
+        return true;
+    }
+}
+async function generateThumbnail(node) {
+    var image;
+    if (node.children && node.children.length > 0 && node.visible && isChildrenVisible(node)) {
+        image = await node.exportAsync({
+            format: "SVG"
+        });
+    }
+    return image;
+}
+async function getCurrentIconImage(node) {
+    // currentIconThumbnail
+    return await generateThumbnail(node);
+}
+function getNearestIcon(node) {
+    if (isIcon(node)) {
+        return node;
+    }
+    else {
+        if (node.parent) {
+            return getNearestIcon(node.parent);
+        }
+    }
+}
+// async function getCurrentIconImage(node, refresh?) {
+// 	if (node) {
+// 		message = {
+// 			thumbnails: []
+// 		}
+// 		message.currentIconThumbnail = await generateThumbnail(node)
+// 		for (let i = 0; i < thumbnailSettings.length; i++) {
+// 			message.thumbnails.push({})
+// 			message.thumbnails[i].size = thumbnailSettings[i].size
+// 			message.thumbnails[i].group = thumbnailSettings[i].group
+// 			message.thumbnails[i].label = thumbnailSettings[i].label
+// 		}
+// 		return message
+// 	}
+// }
+async function getSelectedIconImage(node) {
+    if (node) {
+        return await generateThumbnail(node, node.width);
+    }
+}
+function getCanvasColor() {
+    var hex = rgbToHex(figma.currentPage.backgrounds[0].color);
+    if (hex !== "#e5e5e5") {
+        return hex;
+    }
+    else {
+        return "#ffffff";
+    }
+}
+function isSquare(node) {
+    if (node.width === node.height) {
+        return node;
+    }
+}
+function isIcon(node) {
+    if (node) {
+        if (isSquare(node)
+            && isSmall(node)
+            && isBox(node)) {
+            return node;
+        }
+    }
+}
+function isInsideContainer(node, container) {
+    if (container && node) {
+        if (container === "FRAME" || container === "GROUP" || container === "INSTANCE" || container === "COMPONENT") {
+            return container.findOne(n => n.id === node.id);
+        }
+    }
+}
+function setCurrentIcon(node) {
+    if (node) {
+        currentIcon = node;
+    }
+    else {
+        currentIcon = figma.currentPage.selection[0];
+    }
+}
+function setPreview(node) {
+    getSelectedIconImage(node).then((selectedImage) => {
+        if (!cachedPreviewLocked) {
+            setCurrentIcon(node);
+            figma.ui.postMessage({
+                currentIconThumbnail: selectedImage,
+                thumbnails: thumbnailSettings
+            });
+        }
+    });
+}
+selectedIcon = figma.currentPage.selection[0];
+var cachedScrollPos;
+var cachedUiSize;
+var cachedPreviewLocked;
+// restore previous size
+async function main() {
+    var uiSize = await getClientStorageAsync('uiSize') || { width: 352, height: 294 };
+    var scrollPos = await getClientStorageAsync('scrollPos') || { top: 0, left: 0 };
+    cachedUiSize = uiSize;
+    cachedScrollPos = cachedUiSize;
+    if (figma.currentPage.selection.length === 1) {
+        if (isSmall(figma.currentPage.selection[0])) {
+            if (isBox(figma.currentPage.selection[0])) {
+                if (isSquare(figma.currentPage.selection[0])) {
+                    figma.showUI(__html__, uiSize);
+                    setCurrentIcon();
+                    currentIcon.setRelaunchData({ previewIcon: 'Preview the currently selected icon' });
+                    getSelectedIconImage(figma.currentPage.selection[0]).then((selectedImage) => {
+                        getCurrentIconImage(currentIcon).then((currentImage) => {
+                            var selectedIconThumbnail;
+                            if (figma.currentPage.selection[0].id !== currentIcon.id) {
+                                selectedIconThumbnail = selectedImage;
+                            }
+                            figma.ui.postMessage({ thumbnails: thumbnailSettings, currentIconThumbnail: currentImage, selectedIconThumbnail, canvasColor: getCanvasColor(), scrollPos });
+                        });
+                    });
+                }
+                else {
+                    figma.closePlugin("Selection must be square");
+                }
+            }
+            else {
+                figma.closePlugin("Selection must be a frame, group, component or instance");
+            }
+        }
+        else {
+            figma.closePlugin("Icon must be 256px or smaller");
+        }
+    }
+    else if (figma.currentPage.selection.length === 0) {
+        figma.closePlugin("Select an icon");
+    }
+    else {
+        figma.closePlugin("Select one icon at a time");
+    }
+    figma.on('selectionchange', () => {
+        if (figma.currentPage.selection.length === 1) {
+            if (isInsideContainer(figma.currentPage.selection[0], currentIcon)) {
+                figma.ui.postMessage({
+                    selectedIconThumbnail: undefined
+                });
+            }
+            else {
+                if (isIcon(figma.currentPage.selection[0])) {
+                    selectedIcon = figma.currentPage.selection[0];
+                    if (figma.currentPage.selection.length === 1) {
+                        if (isIcon(figma.currentPage.selection[0])) {
+                            setPreview(selectedIcon);
+                        }
+                    }
+                }
+                else {
+                    var nearestIcon = getNearestIcon(figma.currentPage.selection[0]);
+                    if (nearestIcon) {
+                        setPreview(nearestIcon);
+                    }
+                }
+            }
+        }
+        else {
+            // getSelectedIconImage(selectedIcon).then((selectedImage) => {
+            figma.ui.postMessage({
+                selectedIconThumbnail: undefined
+            });
+            // })
+        }
+    });
+    setInterval(() => {
+        if (currentIcon && figma.getNodeById(currentIcon.id)) {
+            getCurrentIconImage(currentIcon).then((currentImage) => {
+                figma.ui.postMessage({
+                    thumbnails: thumbnailSettings,
+                    currentIconThumbnail: currentImage,
+                    // selectedIconThumbnail: cachedSelectedThumbnail,
+                    canvasColor: getCanvasColor()
+                });
+            });
+        }
+        else {
+            figma.ui.postMessage({ currentIconThumnail: undefined, thumbnails: thumbnailSettings, canvasColor: getCanvasColor() });
+        }
+    }, 375);
+}
+main();
+if (figma.command === "previewIcon") {
+    main();
+}
+figma.ui.onmessage = msg => {
+    if (msg.type === 'set-preview') {
+        if (figma.currentPage.selection.length === 0) {
+            setPreview(figma.currentPage.selection[0]);
+        }
+    }
+    if (msg.type === 'lock-preview') {
+        if (!msg.locked) {
+            if (figma.currentPage.selection.length === 1) {
+                var nearestIcon = getNearestIcon(figma.currentPage.selection[0]);
+                if (nearestIcon) {
+                    setPreview(nearestIcon);
+                }
+            }
+        }
+        cachedPreviewLocked = msg.locked;
+    }
+    if (msg.type === 'resize') {
+        figma.ui.resize(msg.size.width, msg.size.height);
+        cachedUiSize = msg.size;
+    }
+    if (msg.type === 'scroll-position') {
+        cachedScrollPos = msg.pos;
+    }
+};
+figma.on('close', () => {
+    setClientStorageAsync('uiSize', cachedUiSize);
+    setClientStorageAsync('scrollPos', cachedScrollPos);
+});

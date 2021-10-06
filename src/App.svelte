@@ -252,10 +252,13 @@
 		// }
 
 	function postScrollPos(element) {
-		parent.postMessage( { pluginMessage: { type: 'scroll-position', pos: { top: element.scrollTop, left: element.scrollLeft } }}, '*');
+		var scrollPos = { top: element.scrollTop, left: element.scrollLeft }
+		// console.log(scrollPos)
+		parent.postMessage( { pluginMessage: { type: 'scroll-position', pos: scrollPos }}, '*');
 	}
 
 	function setScrollPos(element, pos) {
+		console.log(pos)
 		element.scrollTop = pos.top
 		element.scrollLeft = pos.left
 	}
@@ -295,7 +298,7 @@
 		const thumbnails = root.querySelector('#thumbnails')
 
 		if (thumbnailWrapper && message.scrollPos) {
-
+			console.log(message.scrollPos)
 			setScrollPos(thumbnailWrapper, message.scrollPos)
 		}
 

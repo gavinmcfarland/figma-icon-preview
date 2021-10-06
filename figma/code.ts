@@ -273,7 +273,7 @@ var cachedPreviewLocked;
 // restore previous size
 async function main() {
 
-	var uiSize = await getClientStorageAsync('uiSize') || { width: 328, height: 294 }
+	var uiSize = await getClientStorageAsync('uiSize') || { width: 352, height: 294 }
 	var scrollPos = await getClientStorageAsync('scrollPos') || { top: 0, left: 0 }
 	cachedUiSize = uiSize
 	cachedScrollPos = cachedUiSize
