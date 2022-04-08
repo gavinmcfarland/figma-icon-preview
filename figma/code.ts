@@ -273,7 +273,7 @@ var cachedPreviewLocked;
 // restore previous size
 async function main() {
 
-	var uiSize = await getClientStorageAsync('uiSize') || { width: 328, height: 254 }
+	var uiSize = await getClientStorageAsync('uiSize') || { width: 352, height: 294 }
 	var scrollPos = await getClientStorageAsync('scrollPos') || { top: 0, left: 0 }
 	cachedUiSize = uiSize
 	cachedScrollPos = cachedUiSize
@@ -291,7 +291,7 @@ async function main() {
 					figma.showUI(__html__, uiSize);
 
 					setCurrentIcon()
-					// currentIcon.setRelaunchData({ previewIcon: 'Preview the currently selected icon' })
+					currentIcon.setRelaunchData({ previewIcon: 'Preview the currently selected icon' })
 
 					getSelectedIconImage(figma.currentPage.selection[0]).then((selectedImage) => {
 						getCurrentIconImage(currentIcon).then((currentImage) => {
@@ -405,10 +405,12 @@ figma.ui.onmessage = msg => {
 
 	if (msg.type === 'lock-preview') {
 		if (!msg.locked) {
-			var nearestIcon = getNearestIcon(figma.currentPage.selection[0])
+			if (figma.currentPage.selection.length === 1) {
+				var nearestIcon = getNearestIcon(figma.currentPage.selection[0])
 
-			if (nearestIcon) {
-				setPreview(nearestIcon)
+				if (nearestIcon) {
+					setPreview(nearestIcon)
+				}
 			}
 		}
 		cachedPreviewLocked = msg.locked

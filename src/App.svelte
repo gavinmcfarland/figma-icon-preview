@@ -252,7 +252,9 @@
 		// }
 
 	function postScrollPos(element) {
-		parent.postMessage( { pluginMessage: { type: 'scroll-position', pos: { top: element.scrollTop, left: element.scrollLeft } }}, '*');
+		var scrollPos = { top: element.scrollTop, left: element.scrollLeft }
+		// console.log(scrollPos)
+		parent.postMessage( { pluginMessage: { type: 'scroll-position', pos: scrollPos }}, '*');
 	}
 
 	function setScrollPos(element, pos) {
@@ -295,7 +297,6 @@
 		const thumbnails = root.querySelector('#thumbnails')
 
 		if (thumbnailWrapper && message.scrollPos) {
-
 			setScrollPos(thumbnailWrapper, message.scrollPos)
 		}
 
