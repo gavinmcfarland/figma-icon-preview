@@ -33,12 +33,36 @@ import htmlBundle from 'rollup-plugin-html-bundle';
 const production = !process.env.ROLLUP_WATCH;
 
 export default [{
-	input: 'src/main.ts',
+	input: 'src/main/code.ts',
+	output: {
+		file: 'dist/code.js',
+		format: 'cjs',
+		name: 'code'
+	},
+	plugins: [
+		typescript(),
+
+		// Needed for plugma
+		nodePolyfills(),
+		nodeResolve(),
+		replace({
+			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),
+			'process.env.VERSIONS_PATH': JSON.stringify(process.cwd() + '/.plugma/versions.json')
+		}),
+		json(),
+
+
+		commonjs(),
+		production && terser()
+	]
+},
+{
+	input: 'src/ui/main.ts',
 	output: {
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
-		file: 'public/build/bundle.js'
+		file: 'dist/build/bundle.js'
 	},
 	plugins: [
 		svelte({
@@ -66,11 +90,12 @@ export default [{
 		typescript({
 			sourceMap: !production,
 			inlineSources: !production,
-			tsconfig: "./src/tsconfig.json"
+			tsconfig: "./src/ui/tsconfig.json"
 		}),
 		htmlBundle({
-			template: 'src/template.html',
-			target: 'public/index.html',
+			template: 'src/ui/template.html',
+			dest: "dist",
+        	filename: 'index.html',
 			inline: true
 		}),
 
@@ -78,9 +103,9 @@ export default [{
 		// the bundle has been generated
 		!production && serve(),
 
-		// Watch the `public` directory and refresh the
+		// Watch the `dist` directory and refresh the
 		// browser on changes when not in production
-		!production && livereload('public'),
+		!production && livereload('dist'),
 
 		// If we're building for production (npm run build
 		// instead of npm run dev), minify
@@ -89,30 +114,6 @@ export default [{
 	watch: {
 		clearScreen: false
 	}
-},
-{
-	input: 'figma/code.ts',
-	output: {
-		file: 'public/code.js',
-		format: 'cjs',
-		name: 'code'
-	},
-	plugins: [
-		typescript(),
-
-		// Needed for plugma
-		nodePolyfills(),
-		nodeResolve(),
-		replace({
-			'process.env.PKG_PATH': JSON.stringify(process.cwd() + '/package.json'),
-			'process.env.VERSIONS_PATH': JSON.stringify(process.cwd() + '/.plugma/versions.json')
-		}),
-		json(),
-
-
-		commonjs(),
-		production && terser()
-	]
 }];
 
 function serve() {
