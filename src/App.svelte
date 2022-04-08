@@ -1754,4 +1754,12 @@
 	.show {
 		display: flex;
 	}
+
+
+	/* New theme */
+
+	body {
+		background-color: var(--figma-color-bg, white);
+		color: var(--figma-color-text, black);
+	}
 </style>
