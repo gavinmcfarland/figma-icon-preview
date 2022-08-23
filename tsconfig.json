@@ -1,5 +1,5 @@
 {
-"include": ["figma/code.ts"],
+"include": ["main/code.ts"],
 "exclude": [
     "src/app"
   ],

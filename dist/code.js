@@ -322,25 +322,45 @@ async function main() {
             // })
         }
     });
-    setInterval(() => {
-        if (currentIcon && figma.getNodeById(currentIcon.id)) {
-            getCurrentIconImage(currentIcon).then((currentImage) => {
+    // setInterval(() => {
+    // 	if (currentIcon && figma.getNodeById(currentIcon.id)) {
+    // 		getCurrentIconImage(currentIcon).then((currentImage) => {
+    // 			figma.ui.postMessage({
+    // 				currentIconThumbnail: currentImage,
+    // 				thumbnails: thumbnailSettings,
+    // 				// selectedIconThumbnail: cachedSelectedThumbnail,
+    // 				canvasColor: getCanvasColor(),
+    // 			})
+    // 		})
+    // 	} else {
+    // 		figma.ui.postMessage({
+    // 			currentIconThumnail: undefined,
+    // 			thumbnails: thumbnailSettings,
+    // 			canvasColor: getCanvasColor(),
+    // 		})
+    // 	}
+    // }, 375)
+    figma.on('nodechange', async (event) => {
+        for (const change of event.nodeChanges) {
+            if (currentIcon && figma.getNodeById(currentIcon.id)) {
+                console.log(change);
+                let currentImage = await getCurrentIconImage(currentIcon);
                 figma.ui.postMessage({
-                    thumbnails: thumbnailSettings,
                     currentIconThumbnail: currentImage,
+                    thumbnails: thumbnailSettings,
                     // selectedIconThumbnail: cachedSelectedThumbnail,
                     canvasColor: getCanvasColor(),
                 });
-            });
+            }
+            else {
+                figma.ui.postMessage({
+                    currentIconThumnail: undefined,
+                    thumbnails: thumbnailSettings,
+                    canvasColor: getCanvasColor(),
+                });
+            }
         }
-        else {
-            figma.ui.postMessage({
-                currentIconThumnail: undefined,
-                thumbnails: thumbnailSettings,
-                canvasColor: getCanvasColor(),
-            });
-        }
-    }, 375);
+    });
 }
 main();
 if (figma.command === 'previewIcon') {

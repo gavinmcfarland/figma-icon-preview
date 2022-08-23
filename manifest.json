@@ -7,5 +7,6 @@
   "editorType": ["figma"],
   "relaunchButtons": [
       {"command": "previewIcon", "name": "Preview icon"}
-    ]
+    ],
+  "enableProposedApi": true
 }

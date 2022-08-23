@@ -10,7 +10,7 @@
   },
   "devDependencies": {
     "@figlets/helpers": "*",
-    "@figma/plugin-typings": "^1.19.2",
+    "@figma/plugin-typings": "github:figma/plugin-typings#node-change-preview",
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
