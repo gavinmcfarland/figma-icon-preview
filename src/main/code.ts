@@ -395,8 +395,8 @@ async function main() {
 	// 	}
 	// }, 375)
 
-	figma.on('nodechange', async (event) => {
-		for (const change of event.nodeChanges) {
+	figma.on('documentchange', async (event) => {
+		for (const change of event.documentChanges) {
 			if (currentIcon && figma.getNodeById(currentIcon.id)) {
 				console.log(change)
 				let currentImage = await getCurrentIconImage(currentIcon)
