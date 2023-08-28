@@ -7,5 +7,8 @@
   "editorType": ["figma"],
   "relaunchButtons": [
       {"command": "previewIcon", "name": "Preview icon"}
-    ]
+    ],
+    "networkAccess": {
+        "allowedDomains": ["none"]
+      }
 }

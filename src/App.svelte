@@ -4,39 +4,39 @@
 	import './reset.css'
 
 	export const name: string = ''
-	let root;
-	let toolbar;
-	let actionbar;
+	let root
+	let toolbar
+	let actionbar
 	let message
 	let canvas2
 	let thumbnail
 	let preview
-	let canvasColor = "#ffffff"
-	let oppositeColor;
+	let canvasColor = '#ffffff'
+	let oppositeColor
 	let selectedIconThumbnail
 	let thumbnailWrapper
 	let previewLocked = false
 	let lockButton
 
-
 	function resize(node, event) {
-
-
 		function resizeWindow(event) {
 			const size = {
-			width: Math.max(50,Math.floor(event.clientX+5)),
-			height: Math.max(50,Math.floor(event.clientY+5))
-			};
-			parent.postMessage( { pluginMessage: { type: 'resize', size: size }}, '*');
+				width: Math.max(50, Math.floor(event.clientX + 5)),
+				height: Math.max(50, Math.floor(event.clientY + 5)),
+			}
+			parent.postMessage(
+				{ pluginMessage: { type: 'resize', size: size } },
+				'*'
+			)
 		}
-		node.onpointerdown = (e)=>{
-			corner.onpointermove = resizeWindow;
-			corner.setPointerCapture(e.pointerId);
-		};
-		node.onpointerup = (e)=>{
-			corner.onpointermove = null;
-			corner.releasePointerCapture(e.pointerId);
-		};
+		node.onpointerdown = (e) => {
+			corner.onpointermove = resizeWindow
+			corner.setPointerCapture(e.pointerId)
+		}
+		node.onpointerup = (e) => {
+			corner.onpointermove = null
+			corner.releasePointerCapture(e.pointerId)
+		}
 
 		// corner.onpointerdown = (e)=>{
 		// 	corner.onpointermove = resizeWindow;
@@ -48,24 +48,26 @@
 		// };
 	}
 
-	async function figmaImageDataToCanvas(data: Uint8Array): Promise<HTMLCanvasElement> {
-		const canvas = document.createElement('canvas');
-		const ctx = canvas.getContext('2d');
-		const url = URL.createObjectURL(new Blob([data]));
+	async function figmaImageDataToCanvas(
+		data: Uint8Array
+	): Promise<HTMLCanvasElement> {
+		const canvas = document.createElement('canvas')
+		const ctx = canvas.getContext('2d')
+		const url = URL.createObjectURL(new Blob([data]))
 		const image: HTMLImageElement = await new Promise((resolve, reject) => {
-			const img = new Image();
-			img.onload = () => resolve(img);
-			img.onerror = () => reject();
-			img.src = url;
-		});
-		canvas.width = image.width;
-		canvas.height = image.height;
-		ctx.drawImage(image, 0, 0);
-    return canvas;
+			const img = new Image()
+			img.onload = () => resolve(img)
+			img.onerror = () => reject()
+			img.src = url
+		})
+		canvas.width = image.width
+		canvas.height = image.height
+		ctx.drawImage(image, 0, 0)
+		return canvas
 	}
 
 	async function decodeImage(canvas, ctx, bytes, size) {
-		var scale = 1;
+		var scale = 1
 		const url = URL.createObjectURL(new Blob([bytes]))
 
 		const image = await new Promise((resolve, reject) => {
@@ -94,17 +96,18 @@
 
 		if (previewLocked) {
 			previewLocked = false
-		}
-		else {
+		} else {
 			previewLocked = true
 		}
 
-		parent.postMessage({ pluginMessage: { type: 'lock-preview', locked: previewLocked } }, '*')
+		parent.postMessage(
+			{ pluginMessage: { type: 'lock-preview', locked: previewLocked } },
+			'*'
+		)
 	}
 
 	// onMount(() => {
 	// 	const thumbnails = root.querySelector('#thumbnails')
-
 
 	// 	window.onmessage = async (event) => {
 	// 		message = event.data.pluginMessage
@@ -127,9 +130,6 @@
 	// 			if (message.thumbnails) {
 	// 				// iconName.innerHTML = message.name
 	// 				console.log(message.thumbnails)
-
-
-
 
 	// 				for (let i = 0; i < message.thumbnails.length; i++) {
 	// 					if (thumbnails.children[i]) {
@@ -166,7 +166,6 @@
 	// 				}
 	// 			}
 
-
 	// 		} else {
 	// 			// preview.classList.add('hide')
 	// 			// selectIcon.classList.add('show')
@@ -174,37 +173,34 @@
 	// 	}
 	// })
 
-
 	async function genThumbnailImage(bytes) {
 		const canvas = document.createElement('canvas')
 		const ctx = canvas.getContext('2d')
 		var imageData = await decodeImage(canvas, ctx, bytes, 84)
 		return {
 			imageData,
-			canvas
+			canvas,
 		}
 	}
 
 	function cloneCanvas(oldCanvas) {
-
 		//create a new canvas
-		var newCanvas = document.createElement('canvas');
-		var context = newCanvas.getContext('2d');
+		var newCanvas = document.createElement('canvas')
+		var context = newCanvas.getContext('2d')
 
 		//set dimensions
-		newCanvas.width = oldCanvas.width;
-		newCanvas.height = oldCanvas.height;
+		newCanvas.width = oldCanvas.width
+		newCanvas.height = oldCanvas.height
 
 		//apply the old canvas to the new one
-		context.drawImage(oldCanvas, 0, 0);
+		context.drawImage(oldCanvas, 0, 0)
 
 		//return the new canvas
-		return newCanvas;
+		return newCanvas
 	}
 
 	function getCorrectTextColor(hex) {
-
-			/*
+		/*
 			From this W3C document: http://www.webmasterworld.com/r.cgi?f=88&d=9769&url=http://www.w3.org/TR/AERT#color-contrast
 
 			Color brightness is determined by the following formula:
@@ -214,47 +210,58 @@
 
 			*/
 
-			var threshold = 160; /* about half of 256. Lower threshold equals more dark text on dark background  */
+		var threshold = 160 /* about half of 256. Lower threshold equals more dark text on dark background  */
 
-			var hRed = hexToR(hex);
-			var hGreen = hexToG(hex);
-			var hBlue = hexToB(hex);
+		var hRed = hexToR(hex)
+		var hGreen = hexToG(hex)
+		var hBlue = hexToB(hex)
 
+		function hexToR(h) {
+			return parseInt(cutHex(h).substring(0, 2), 16)
+		}
+		function hexToG(h) {
+			return parseInt(cutHex(h).substring(2, 4), 16)
+		}
+		function hexToB(h) {
+			return parseInt(cutHex(h).substring(4, 6), 16)
+		}
+		function cutHex(h) {
+			return h.charAt(0) == '#' ? h.substring(1, 7) : h
+		}
 
-			function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
-			function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
-			function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
-			function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
-
-			var cBrightness = ((hRed * 299) + (hGreen * 587) + (hBlue * 114)) / 1000;
-			if (cBrightness > threshold){return "#000000";} else { return "#ffffff";}
+		var cBrightness = (hRed * 299 + hGreen * 587 + hBlue * 114) / 1000
+		if (cBrightness > threshold) {
+			return '#000000'
+		} else {
+			return '#ffffff'
+		}
 	}
 
+	// //test colortable
+	// var colPairs = new Array("00","22","44","66","99","aa","cc","ff");
+	// for(i=0;i<colPairs.length;i++){
+	// 	for(j=0;j<colPairs.length;j++){
+	// 		for(k=0;k<colPairs.length;k++){
+	// 			//build a hexcode
+	// 			var theColor = "#"+colPairs[i]+colPairs[j]+colPairs[k];
 
+	// 			//checkf for correct textcolor in passed hexcode
+	// 			var textcolor = getCorrectTextColor(theColor);
 
-
-		// //test colortable
-		// var colPairs = new Array("00","22","44","66","99","aa","cc","ff");
-		// for(i=0;i<colPairs.length;i++){
-		// 	for(j=0;j<colPairs.length;j++){
-		// 		for(k=0;k<colPairs.length;k++){
-		// 			//build a hexcode
-		// 			var theColor = "#"+colPairs[i]+colPairs[j]+colPairs[k];
-
-		// 			//checkf for correct textcolor in passed hexcode
-		// 			var textcolor = getCorrectTextColor(theColor);
-
-		// 			//output div
-		// 			document.write("<div style='background-color:" + theColor + ";color:"+textcolor+";' class='colorblock'>" + theColor + "</div>");
-		// 		}
-		// 		document.write("<br/>");
-		// 	}
-		// }
+	// 			//output div
+	// 			document.write("<div style='background-color:" + theColor + ";color:"+textcolor+";' class='colorblock'>" + theColor + "</div>");
+	// 		}
+	// 		document.write("<br/>");
+	// 	}
+	// }
 
 	function postScrollPos(element) {
 		var scrollPos = { top: element.scrollTop, left: element.scrollLeft }
 		// console.log(scrollPos)
-		parent.postMessage( { pluginMessage: { type: 'scroll-position', pos: scrollPos }}, '*');
+		parent.postMessage(
+			{ pluginMessage: { type: 'scroll-position', pos: scrollPos } },
+			'*'
+		)
 	}
 
 	function setScrollPos(element, pos) {
@@ -264,24 +271,28 @@
 
 	function hexToRgba(hex, opacity?) {
 		if (hex) {
-			var c;
-			if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
-				c= hex.substring(1).split('');
-				if(c.length== 3){
-					c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+			var c
+			if (/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)) {
+				c = hex.substring(1).split('')
+				if (c.length == 3) {
+					c = [c[0], c[0], c[1], c[1], c[2], c[2]]
 				}
-				c= '0x'+c.join('');
-				return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+',' + opacity + ')';
+				c = '0x' + c.join('')
+				return (
+					'rgba(' +
+					[(c >> 16) & 255, (c >> 8) & 255, c & 255].join(',') +
+					',' +
+					opacity +
+					')'
+				)
 			}
-			throw new Error('Bad Hex');
+			throw new Error('Bad Hex')
 		}
 	}
 
-
-
 	function createSvg(svgString) {
-		var container = document.createElement('div');
-		container.innerHTML = String.fromCharCode.apply(null, svgString);
+		var container = document.createElement('div')
+		container.innerHTML = String.fromCharCode.apply(null, svgString)
 		var child = container.children[0]
 		// var svg = child.cloneNode(true)
 		// container.remove()
@@ -290,7 +301,7 @@
 	}
 
 	async function onLoad(event) {
-		message = await event.data.pluginMessage;
+		message = await event.data.pluginMessage
 
 		// previewLocked = message.previewLocked
 
@@ -300,300 +311,355 @@
 			setScrollPos(thumbnailWrapper, message.scrollPos)
 		}
 
-		setInterval(()=> {
+		setInterval(() => {
 			postScrollPos(thumbnailWrapper)
 		}, 300)
 
 		if (message.canvasColor) {
-			canvasColor	= message.canvasColor
-			oppositeColor =  getCorrectTextColor(message.canvasColor)
+			canvasColor = message.canvasColor
+			oppositeColor = getCorrectTextColor(message.canvasColor)
 			// root.style.backgroundColor = message.canvasColor
 		}
 
-			// console.log(message)
+		// console.log(message)
 
-			selectedIconThumbnail = message?.selectedIconThumbnail
+		selectedIconThumbnail = message?.selectedIconThumbnail
 
-				if (selectedIconThumbnail) {
-					// const ctx2 = canvas2.getContext('2d')
-					// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
-					var svg = createSvg(message.selectedIconThumbnail)
-					// svg.style.width = "16px"
-					// svg.style.height = "16px"
-					preview.classList.add('show')
-					svg.style.width = 16
-					svg.style.height = 16
-					thumbnail.appendChild(svg)
-					thumbnail.replaceChild(svg, thumbnail.children[0])
-					// thumbnail.children[0].parentNode.replaceChild(svg, thumbnail.children[0])
-				}
-				else {
-					preview.classList.remove('show')
-				}
+		if (selectedIconThumbnail) {
+			// const ctx2 = canvas2.getContext('2d')
+			// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
+			var svg = createSvg(message.selectedIconThumbnail)
+			// svg.style.width = "16px"
+			// svg.style.height = "16px"
+			preview.classList.add('show')
+			svg.style.width = 16
+			svg.style.height = 16
+			thumbnail.appendChild(svg)
+			thumbnail.replaceChild(svg, thumbnail.children[0])
+			// thumbnail.children[0].parentNode.replaceChild(svg, thumbnail.children[0])
+		} else {
+			preview.classList.remove('show')
+		}
 
+		if (message) {
+			var canvas
+			if (message.currentIconThumbnail) {
+				canvas = createSvg(message.currentIconThumbnail)
+			}
 
+			if (message.thumbnails) {
+				for (let i = 0; i < message.thumbnails.length; i++) {
+					if (thumbnails.children[i]) {
+						let clone
+						if (message.currentIconThumbnail) {
+							clone = canvas.cloneNode(true)
+							clone.style.width = message.thumbnails[i].size
+							clone.style.height = message.thumbnails[i].size
+							thumbnails.children[i].appendChild(clone)
+							thumbnails.children[
+								i
+							].children[0].parentNode.replaceChild(
+								clone,
+								thumbnails.children[i].children[0]
+							)
+						} else {
+							if (thumbnails.children[i].children[0])
+								thumbnails.children[
+									i
+								].children[0].style.display = 'none'
+						}
 
+						thumbnails.children[
+							i
+						].children[1].children[1].children[0].innerHTML =
+							message.thumbnails[i].size
 
-
-			if (message) {
-
-				var canvas
-				if (message.currentIconThumbnail) {
-					canvas = createSvg(message.currentIconThumbnail)
-				}
-
-				if (message.thumbnails) {
-
-					for (let i = 0; i < message.thumbnails.length; i++) {
-						if (thumbnails.children[i]) {
-
-							let clone
-							if (message.currentIconThumbnail) {
-								clone = canvas.cloneNode(true)
-								clone.style.width = message.thumbnails[i].size
-								clone.style.height = message.thumbnails[i].size
-								thumbnails.children[i].appendChild(clone)
-								thumbnails.children[i].children[0].parentNode.replaceChild(clone, thumbnails.children[i].children[0])
-							}
-							else {
-								if (thumbnails.children[i].children[0]) thumbnails.children[i].children[0].style.display = "none"
-							}
-
-							thumbnails.children[i].children[1].children[1].children[0].innerHTML = message.thumbnails[i].size
-
-							if (message.thumbnails[i].group) {
-								if (i > 0) {
-									if (
-										message.thumbnails[i].group !== message.thumbnails[i - 1].group
-									) {
-										thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
-										thumbnails.children[i].classList.add('first')
-									}
-								} else {
-									thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
-									thumbnails.children[i].classList.add('first')
+						if (message.thumbnails[i].group) {
+							if (i > 0) {
+								if (
+									message.thumbnails[i].group !==
+									message.thumbnails[i - 1].group
+								) {
+									thumbnails.children[
+										i
+									].children[1].children[0].innerHTML =
+										message.thumbnails[i].group
+									thumbnails.children[i].classList.add(
+										'first'
+									)
 								}
+							} else {
+								thumbnails.children[
+									i
+								].children[1].children[0].innerHTML =
+									message.thumbnails[i].group
+								thumbnails.children[i].classList.add('first')
 							}
+						}
 
-							if (message.thumbnails[i].label) {
-								thumbnails.children[i].children[1].children[1].children[1].innerHTML = message.thumbnails[i].label
-							}
+						if (message.thumbnails[i].label) {
+							thumbnails.children[
+								i
+							].children[1].children[1].children[1].innerHTML =
+								message.thumbnails[i].label
 						}
 					}
 				}
-
-
-
-			} else {
-				// preview.classList.add('hide')
-				// selectIcon.classList.add('show')
 			}
-
+		} else {
+			// preview.classList.add('hide')
+			// selectIcon.classList.add('show')
+		}
 	}
 </script>
 
-<svelte:window on:message={onLoad}/>
+<svelte:window on:message={onLoad} />
 
 <div class="wrapper" bind:this={root} style="background-color: {canvasColor}">
+	<div
+		id="actionbar"
+		bind:this={actionbar}
+		class="p-xxsmall flex"
+		style="justify-content: space-between;">
+		<button
+			id="refresh"
+			style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};"
+			bind:this={preview}
+			on:click={() => {
+				setPreview()
+			}}
+			class="previewButton button button--secondary"
+			><div id="thumbnail" bind:this={thumbnail}>
+				<canvas bind:this={canvas2} width="16" height="16" />
+			</div>
+			<span style="white-space: nowrap;">Swap</span></button>
+		<button
+			id="lock"
+			style="color: {oppositeColor}; --hover-color: {hexToRgba(
+				oppositeColor,
+				0.06
+			)};"
+			bind:this={lockButton}
+			on:click={() => {
+				lockPreview()
+			}}
+			class="lockButton button button--tertiary"
+			><span style="white-space: nowrap;">
+				{#if previewLocked}<svg
+						width="8"
+						height="10"
+						viewBox="0 0 8 10"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path
+							fill-rule="evenodd"
+							clip-rule="evenodd"
+							d="M5.5 2.5V4H2.5V2.5C2.5 1.67157 3.17157 1 4 1C4.82843 1 5.5 1.67157 5.5 2.5ZM1.5 4V2.5C1.5 1.11929 2.61929 0 4 0C5.38071 0 6.5 1.11929 6.5 2.5V4H7C7.27614 4 7.5 4.22386 7.5 4.5V9.5C7.5 9.77614 7.27614 10 7 10H1C0.723858 10 0.5 9.77614 0.5 9.5V4.5C0.5 4.22386 0.723858 4 1 4H1.5Z"
+							fill={oppositeColor}
+							fill-opacity="0.8" />
+					</svg>
+				{:else}
+					<svg
+						width="10"
+						height="11"
+						viewBox="0 0 10 11"
+						fill="none"
+						xmlns="http://www.w3.org/2000/svg">
+						<path
+							fill-rule="evenodd"
+							clip-rule="evenodd"
+							d="M6 4V5H6.5C6.77614 5 7 5.22386 7 5.5V10.5C7 10.7761 6.77614 11 6.5 11H0.5C0.223858 11 0 10.7761 0 10.5V5.5C0 5.22386 0.223858 5 0.5 5H5V2.5C5 1.11929 6.11929 0 7.5 0C8.88071 0 10 1.11929 10 2.5V4H9V2.5C9 1.67157 8.32843 1 7.5 1C6.67157 1 6 1.67157 6 2.5V4Z"
+							fill={oppositeColor}
+							fill-opacity="0.8" />
+					</svg>
+				{/if}
+			</span></button>
+	</div>
 
-		<div id="actionbar" bind:this="{actionbar}" class="p-xxsmall flex" style="justify-content: space-between;">
-			<button id="refresh" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{preview}" on:click={() => {
-						setPreview();
-					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Swap</span></button>
-			<button id="lock" style="color: {oppositeColor}; --hover-color: {hexToRgba(oppositeColor, 0.06)};" bind:this="{lockButton}" on:click={() => {
-						lockPreview();
-					}} class="lockButton button button--tertiary"><span style="white-space: nowrap;">
-						{#if previewLocked}<svg width="8" height="10" viewBox="0 0 8 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 2.5V4H2.5V2.5C2.5 1.67157 3.17157 1 4 1C4.82843 1 5.5 1.67157 5.5 2.5ZM1.5 4V2.5C1.5 1.11929 2.61929 0 4 0C5.38071 0 6.5 1.11929 6.5 2.5V4H7C7.27614 4 7.5 4.22386 7.5 4.5V9.5C7.5 9.77614 7.27614 10 7 10H1C0.723858 10 0.5 9.77614 0.5 9.5V4.5C0.5 4.22386 0.723858 4 1 4H1.5Z" fill="{oppositeColor}" fill-opacity="0.8"/>
-</svg>
-						{:else}
-<svg width="10" height="11" viewBox="0 0 10 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M6 4V5H6.5C6.77614 5 7 5.22386 7 5.5V10.5C7 10.7761 6.77614 11 6.5 11H0.5C0.223858 11 0 10.7761 0 10.5V5.5C0 5.22386 0.223858 5 0.5 5H5V2.5C5 1.11929 6.11929 0 7.5 0C8.88071 0 10 1.11929 10 2.5V4H9V2.5C9 1.67157 8.32843 1 7.5 1C6.67157 1 6 1.67157 6 2.5V4Z" fill="{oppositeColor}" fill-opacity="0.8"/>
-</svg>
-						{/if}
-
-						</span></button>
-		</div>
-
-		<div bind:this={thumbnailWrapper}  class="preview-window">
+	<div bind:this={thumbnailWrapper} class="preview-window">
 		<!-- Empty divs to prevent layout changing when loading thumbnails -->
-				<div  class="thumbnail-wrapper">
-				<div id="thumbnails" style="color: {oppositeColor}; --border-color: {hexToRgba(oppositeColor, 0.07)}; --group-color: {hexToRgba(oppositeColor, 0.8)}" >
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
-						</div>
-					</div>
-					<div>
-						<div></div>
-						<div class="icon__info">
-							<p class="type--small"></p>
-							<div>
-								<p class="type--small"></p>
-								<p class="type--small"></p>
-							</div>
+		<div class="thumbnail-wrapper">
+			<div
+				id="thumbnails"
+				style="color: {oppositeColor}; --border-color: {hexToRgba(
+					oppositeColor,
+					0.07
+				)}; --group-color: {hexToRgba(oppositeColor, 0.8)}">
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
 						</div>
 					</div>
 				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
 				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+				<div>
+					<div />
+					<div class="icon__info">
+						<p class="type--small" />
+						<div>
+							<p class="type--small" />
+							<p class="type--small" />
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
+	</div>
 
-		<!-- <div id="toolbar" bind:this="{toolbar}" class="p-xxsmall flex" style="justify-content: space-between;">
+	<!-- <div id="toolbar" bind:this="{toolbar}" class="p-xxsmall flex" style="justify-content: space-between;">
 			<button id="refresh" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{preview}" on:click={() => {
 						setPreview();
 					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Swap</span></button>
@@ -603,13 +669,31 @@
 					}} class="lockButton button button--secondary"><span style="white-space: nowrap;">{previewLocked ? "Locked" : "Lock"}</span></button>
 		</div> -->
 
-		<svg id="corner" use:resize width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<path d="M13 2L2 13" stroke="{oppositeColor}" stroke-opacity="0.24" stroke-linecap="round"/>
-		<path d="M13 6.5L6.5 13" stroke="{oppositeColor}" stroke-opacity="0.24" stroke-linecap="round"/>
-		<path d="M13 11L11 13" stroke="{oppositeColor}" stroke-opacity="0.24" stroke-linecap="round"/>
-		</svg>
+	<svg
+		id="corner"
+		use:resize
+		width="16"
+		height="16"
+		viewBox="0 0 16 16"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg">
+		<path
+			d="M13 2L2 13"
+			stroke={oppositeColor}
+			stroke-opacity="0.24"
+			stroke-linecap="round" />
+		<path
+			d="M13 6.5L6.5 13"
+			stroke={oppositeColor}
+			stroke-opacity="0.24"
+			stroke-linecap="round" />
+		<path
+			d="M13 11L11 13"
+			stroke={oppositeColor}
+			stroke-opacity="0.24"
+			stroke-linecap="round" />
+	</svg>
 </div>
-
 
 <!-- <div id="selectIcon" class="selectIcon">
 			<div>
@@ -622,16 +706,12 @@
 			</div>
 		</div> -->
 
-
-
-
 <style global>
-
 	:global(*) {
 		box-sizing: border-box;
 	}
 
-	#corner{
+	#corner {
 		/* display: none; */
 		position: absolute;
 		right: 0px;
@@ -669,7 +749,8 @@
 		box-sizing: border-box;
 	}
 	:global(html) {
-		height: calc(100% - 1px);
+		/* background-color: var(--figma-color-bg); */
+		height: 100%;
 		/* overflow: hidden; */
 		position: relative;
 	}
@@ -699,7 +780,7 @@
 	.preview-window {
 		/* flex-grow: 1; */
 		overflow-y: scroll;
-		margin-bottom: -1px;
+
 		/* scroll-snap-type: y mandatory; */
 	}
 
@@ -709,14 +790,12 @@
 
 	#thumbnails {
 		/* display: flex; */
-    	flex-wrap: wrap;
-    	margin-bottom: -1px;
+		flex-wrap: wrap;
 	}
 
 	#thumbnails > * {
 		scroll-snap-align: start;
 	}
-
 
 	/* Vars */
 	:root {
@@ -816,24 +895,30 @@
 		font-family: 'Inter';
 		font-weight: 400;
 		font-style: normal;
-		src: url('https://rsms.me/inter/font-files/Inter-Regular.woff2?v=3.7') format('woff2'),
-			url('https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.7') format('woff');
+		src: url('https://rsms.me/inter/font-files/Inter-Regular.woff2?v=3.7')
+				format('woff2'),
+			url('https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.7')
+				format('woff');
 	}
 
 	@font-face {
 		font-family: 'Inter';
 		font-weight: 500;
 		font-style: normal;
-		src: url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7') format('woff2'),
-			url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7') format('woff');
+		src: url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7')
+				format('woff2'),
+			url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7')
+				format('woff');
 	}
 
 	@font-face {
 		font-family: 'Inter';
 		font-weight: 600;
 		font-style: normal;
-		src: url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7') format('woff2'),
-			url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7') format('woff');
+		src: url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7')
+				format('woff2'),
+			url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7')
+				format('woff');
 	}
 
 	/* UTILITIES */
@@ -1397,7 +1482,8 @@
 		background-color: var(--white);
 		border: 1px solid var(--black8);
 		color: var(--black8);
-		padding: 0 calc(var(--size-xsmall) + 1px) 0 calc(var(--size-xsmall) + 1px);
+		padding: 0 calc(var(--size-xsmall) + 1px) 0
+			calc(var(--size-xsmall) + 1px);
 		letter-spacing: var(--font-letter-spacing-pos-small);
 	}
 
@@ -1469,7 +1555,6 @@
 		opacity: 0.4;
 	}
 
-
 	.type {
 		font-family: var(--font-stack);
 		font-size: var(--font-size-xsmall);
@@ -1510,15 +1595,15 @@
 		letter-spacing: var(--font-letter-spacing-neg-xsmall);
 	}
 
-	.type--inverse+.type--small {
+	.type--inverse + .type--small {
 		letter-spacing: var(--font-letter-spacing-neg-small);
 	}
 
-	.type--inverse+.type--large {
+	.type--inverse + .type--large {
 		letter-spacing: var(--font-letter-spacing-neg-large);
 	}
 
-	.type--inverse+.type--xlarge {
+	.type--inverse + .type--xlarge {
 		letter-spacing: var(--font-letter-spacing-neg-xlarge);
 	}
 
@@ -1529,8 +1614,6 @@
 	.wrapper {
 		/* overflow: hidden; */
 	}
-
-
 
 	/* CUSTOM CSS */
 
@@ -1551,7 +1634,7 @@
 		/* display: flex; */
 	}
 
-	#thumbnails>* {
+	#thumbnails > * {
 		border-bottom: 1px solid var(--border-color);
 		border-right: 1px solid var(--border-color);
 		box-sizing: border-box;
@@ -1566,55 +1649,46 @@
 	}
 
 	.preview-window {
-			scroll-snap-type: y mandatory;
-		}
+		scroll-snap-type: y mandatory;
+	}
 
 	@media (max-width: 319px) {
-
 	}
 
 	@media (max-height: 240px) {
-		#thumbnails>* {
+		#thumbnails > * {
 			height: 100vh;
 		}
-
 	}
 
 	@media (min-width: 280px) {
-
-		#thumbnails>* {
+		#thumbnails > * {
 			width: calc(100% / 2);
-
 		}
-
 	}
 
 	@media (min-width: 520px) {
-		#thumbnails>* {
+		#thumbnails > * {
 			width: calc(100% / 3);
 		}
-
 	}
 
 	@media (min-height: 480px) {
-		#thumbnails>* {
+		#thumbnails > * {
 			height: 33.33333vh;
 		}
-
 	}
 
 	@media (min-width: 740px) {
-		#thumbnails>* {
+		#thumbnails > * {
 			width: calc(100% / 4);
 		}
-
 	}
 
 	@media (min-height: 740px) {
-		#thumbnails>* {
+		#thumbnails > * {
 			height: 25vh;
 		}
-
 	}
 
 	/* @media (min-width: 920px) {
@@ -1625,19 +1699,16 @@
 	} */
 
 	@media (min-width: 1100px) {
-		#thumbnails>* {
+		#thumbnails > * {
 			width: calc(100% / 5);
 		}
-
 	}
 
 	@media (min-width: 1580px) {
-		#thumbnails>* {
+		#thumbnails > * {
 			width: calc(100% / 7);
 		}
-
 	}
-
 
 	#actionbar {
 		position: fixed;
@@ -1650,7 +1721,6 @@
 		/* border-top: 1px solid #e5e5e5; */
 		/* background-color: white; */
 	}
-
 
 	#toolbar {
 		/* display: none; */
@@ -1683,25 +1753,25 @@
 	}
 
 	/* TODO: needs work */
-	.icon__info> :nth-child(1) {
+	.icon__info > :nth-child(1) {
 		top: 12px;
 		/* color: var(--black); */
 		color: var(--group-color);
 	}
 
-	.icon__info> :nth-child(2) {
+	.icon__info > :nth-child(2) {
 		position: absolute;
 		bottom: 0;
 		width: 100%;
 	}
 
-	.icon__info>*> :nth-child(1) {
+	.icon__info > * > :nth-child(1) {
 		text-align: right;
 		/* margin-right: -4px; */
 		opacity: 0.5;
 	}
 
-	.icon__info>*> :nth-child(2) {
+	.icon__info > * > :nth-child(2) {
 		position: absolute;
 		left: 0;
 		top: 0;
