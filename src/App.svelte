@@ -26,7 +26,7 @@
 			}
 			parent.postMessage(
 				{ pluginMessage: { type: 'resize', size: size } },
-				'*'
+				'*',
 			)
 		}
 		node.onpointerdown = (e) => {
@@ -49,7 +49,7 @@
 	}
 
 	async function figmaImageDataToCanvas(
-		data: Uint8Array
+		data: Uint8Array,
 	): Promise<HTMLCanvasElement> {
 		const canvas = document.createElement('canvas')
 		const ctx = canvas.getContext('2d')
@@ -102,7 +102,7 @@
 
 		parent.postMessage(
 			{ pluginMessage: { type: 'lock-preview', locked: previewLocked } },
-			'*'
+			'*',
 		)
 	}
 
@@ -260,7 +260,7 @@
 		// console.log(scrollPos)
 		parent.postMessage(
 			{ pluginMessage: { type: 'scroll-position', pos: scrollPos } },
-			'*'
+			'*',
 		)
 	}
 
@@ -300,120 +300,122 @@
 		return child
 	}
 
-	async function onLoad(event) {
-		message = await event.data.pluginMessage
+	onMount(() => {
+		window.onmessage = async (event) => {
+			message = await event.data.pluginMessage
 
-		// previewLocked = message.previewLocked
+			// previewLocked = message.previewLocked
 
-		const thumbnails = root.querySelector('#thumbnails')
+			const thumbnails = root.querySelector('#thumbnails')
 
-		if (thumbnailWrapper && message.scrollPos) {
-			setScrollPos(thumbnailWrapper, message.scrollPos)
-		}
-
-		setInterval(() => {
-			postScrollPos(thumbnailWrapper)
-		}, 300)
-
-		if (message.canvasColor) {
-			canvasColor = message.canvasColor
-			oppositeColor = getCorrectTextColor(message.canvasColor)
-			// root.style.backgroundColor = message.canvasColor
-		}
-
-		// console.log(message)
-
-		selectedIconThumbnail = message?.selectedIconThumbnail
-
-		if (selectedIconThumbnail) {
-			// const ctx2 = canvas2.getContext('2d')
-			// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
-			var svg = createSvg(message.selectedIconThumbnail)
-			// svg.style.width = "16px"
-			// svg.style.height = "16px"
-			preview.classList.add('show')
-			svg.style.width = 16
-			svg.style.height = 16
-			thumbnail.appendChild(svg)
-			thumbnail.replaceChild(svg, thumbnail.children[0])
-			// thumbnail.children[0].parentNode.replaceChild(svg, thumbnail.children[0])
-		} else {
-			preview.classList.remove('show')
-		}
-
-		if (message) {
-			var canvas
-			if (message.currentIconThumbnail) {
-				canvas = createSvg(message.currentIconThumbnail)
+			if (thumbnailWrapper && message.scrollPos) {
+				setScrollPos(thumbnailWrapper, message.scrollPos)
 			}
 
-			if (message.thumbnails) {
-				for (let i = 0; i < message.thumbnails.length; i++) {
-					if (thumbnails.children[i]) {
-						let clone
-						if (message.currentIconThumbnail) {
-							clone = canvas.cloneNode(true)
-							clone.style.width = message.thumbnails[i].size
-							clone.style.height = message.thumbnails[i].size
-							thumbnails.children[i].appendChild(clone)
-							thumbnails.children[
-								i
-							].children[0].parentNode.replaceChild(
-								clone,
-								thumbnails.children[i].children[0]
-							)
-						} else {
-							if (thumbnails.children[i].children[0])
+			setInterval(() => {
+				postScrollPos(thumbnailWrapper)
+			}, 300)
+
+			if (message.canvasColor) {
+				canvasColor = message.canvasColor
+				oppositeColor = getCorrectTextColor(message.canvasColor)
+				// root.style.backgroundColor = message.canvasColor
+			}
+
+			// console.log(message)
+
+			selectedIconThumbnail = message?.selectedIconThumbnail
+
+			if (selectedIconThumbnail) {
+				// const ctx2 = canvas2.getContext('2d')
+				// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
+				var svg = createSvg(message.selectedIconThumbnail)
+				// svg.style.width = "16px"
+				// svg.style.height = "16px"
+				preview.classList.add('show')
+				svg.style.width = 16
+				svg.style.height = 16
+				thumbnail.appendChild(svg)
+				thumbnail.replaceChild(svg, thumbnail.children[0])
+				// thumbnail.children[0].parentNode.replaceChild(svg, thumbnail.children[0])
+			} else {
+				preview.classList.remove('show')
+			}
+
+			if (message) {
+				var canvas
+				if (message.currentIconThumbnail) {
+					canvas = createSvg(message.currentIconThumbnail)
+				}
+
+				if (message.thumbnails) {
+					for (let i = 0; i < message.thumbnails.length; i++) {
+						if (thumbnails.children[i]) {
+							let clone
+							if (message.currentIconThumbnail && canvas) {
+								clone = canvas.cloneNode(true)
+								clone.style.width = message.thumbnails[i].size
+								clone.style.height = message.thumbnails[i].size
+								thumbnails.children[i].appendChild(clone)
 								thumbnails.children[
 									i
-								].children[0].style.display = 'none'
-						}
+								].children[0].parentNode.replaceChild(
+									clone,
+									thumbnails.children[i].children[0],
+								)
+							} else {
+								if (thumbnails.children[i].children[0])
+									thumbnails.children[
+										i
+									].children[0].style.display = 'none'
+							}
 
-						thumbnails.children[
-							i
-						].children[1].children[1].children[0].innerHTML =
-							message.thumbnails[i].size
+							thumbnails.children[
+								i
+							].children[1].children[1].children[0].innerHTML =
+								message.thumbnails[i].size
 
-						if (message.thumbnails[i].group) {
-							if (i > 0) {
-								if (
-									message.thumbnails[i].group !==
-									message.thumbnails[i - 1].group
-								) {
+							if (message.thumbnails[i].group) {
+								if (i > 0) {
+									if (
+										message.thumbnails[i].group !==
+										message.thumbnails[i - 1].group
+									) {
+										thumbnails.children[
+											i
+										].children[1].children[0].innerHTML =
+											message.thumbnails[i].group
+										thumbnails.children[i].classList.add(
+											'first',
+										)
+									}
+								} else {
 									thumbnails.children[
 										i
 									].children[1].children[0].innerHTML =
 										message.thumbnails[i].group
 									thumbnails.children[i].classList.add(
-										'first'
+										'first',
 									)
 								}
-							} else {
+							}
+
+							if (message.thumbnails[i].label) {
 								thumbnails.children[
 									i
-								].children[1].children[0].innerHTML =
-									message.thumbnails[i].group
-								thumbnails.children[i].classList.add('first')
+								].children[1].children[1].children[1].innerHTML =
+									message.thumbnails[i].label
 							}
-						}
-
-						if (message.thumbnails[i].label) {
-							thumbnails.children[
-								i
-							].children[1].children[1].children[1].innerHTML =
-								message.thumbnails[i].label
 						}
 					}
 				}
+			} else {
+				// preview.classList.add('hide')
+				// selectIcon.classList.add('show')
 			}
-		} else {
-			// preview.classList.add('hide')
-			// selectIcon.classList.add('show')
 		}
-	}
+	})
 </script>
-
-<svelte:window on:message={onLoad} />
 
 <div class="wrapper" bind:this={root} style="background-color: {canvasColor}">
 	<div
@@ -430,14 +432,14 @@
 			}}
 			class="previewButton button button--secondary"
 			><div id="thumbnail" bind:this={thumbnail}>
-				<canvas bind:this={canvas2} width="16" height="16" />
+				<canvas bind:this={canvas2} width="16" height="16"></canvas>
 			</div>
 			<span style="white-space: nowrap;">Swap</span></button>
 		<button
 			id="lock"
 			style="color: {oppositeColor}; --hover-color: {hexToRgba(
 				oppositeColor,
-				0.06
+				0.06,
 			)};"
 			bind:this={lockButton}
 			on:click={() => {
@@ -483,7 +485,7 @@
 				id="thumbnails"
 				style="color: {oppositeColor}; --border-color: {hexToRgba(
 					oppositeColor,
-					0.07
+					0.07,
 				)}; --group-color: {hexToRgba(oppositeColor, 0.8)}">
 				<div>
 					<div />
@@ -659,16 +661,6 @@
 		</div>
 	</div>
 
-	<!-- <div id="toolbar" bind:this="{toolbar}" class="p-xxsmall flex" style="justify-content: space-between;">
-			<button id="refresh" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{preview}" on:click={() => {
-						setPreview();
-					}} class="previewButton button button--secondary"><div id="thumbnail" bind:this="{thumbnail}"><canvas bind:this="{canvas2}" width="16" height="16"></canvas></div><span style="white-space: nowrap;">Swap</span></button>
-
-			<button id="lock" style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};" bind:this="{lockButton}" on:click={() => {
-						lockPreview();
-					}} class="lockButton button button--secondary"><span style="white-space: nowrap;">{previewLocked ? "Locked" : "Lock"}</span></button>
-		</div> -->
-
 	<svg
 		id="corner"
 		use:resize
@@ -767,7 +759,8 @@
 		left: 0;
 		right: 0;
 		overflow: hidden;
-		box-shadow: 0 0px 14px rgba(0, 0, 0, 0.15),
+		box-shadow:
+			0 0px 14px rgba(0, 0, 0, 0.15),
 			0 0 0 0.5px rgba(0, 0, 0, 0.1);
 		border-bottom-left-radius: 2px;
 		border-bottom-right-radius: 2px;
@@ -895,7 +888,8 @@
 		font-family: 'Inter';
 		font-weight: 400;
 		font-style: normal;
-		src: url('https://rsms.me/inter/font-files/Inter-Regular.woff2?v=3.7')
+		src:
+			url('https://rsms.me/inter/font-files/Inter-Regular.woff2?v=3.7')
 				format('woff2'),
 			url('https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.7')
 				format('woff');
@@ -905,7 +899,8 @@
 		font-family: 'Inter';
 		font-weight: 500;
 		font-style: normal;
-		src: url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7')
+		src:
+			url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7')
 				format('woff2'),
 			url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7')
 				format('woff');
@@ -915,7 +910,8 @@
 		font-family: 'Inter';
 		font-weight: 600;
 		font-style: normal;
-		src: url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7')
+		src:
+			url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7')
 				format('woff2'),
 			url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7')
 				format('woff');
