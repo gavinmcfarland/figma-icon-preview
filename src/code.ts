@@ -25,7 +25,7 @@ function hexToRgb(hex) {
 				r: parseInt(result[1], 16) / 255,
 				g: parseInt(result[2], 16) / 255,
 				b: parseInt(result[3], 16) / 255,
-		  }
+			}
 		: null
 }
 
@@ -316,16 +316,16 @@ async function main() {
 										canvasColor: getCanvasColor(),
 										scrollPos,
 									})
-								}
+								},
 							)
-						}
+						},
 					)
 				} else {
 					figma.closePlugin('Selection must be square')
 				}
 			} else {
 				figma.closePlugin(
-					'Selection must be a frame, group, component or instance'
+					'Selection must be a frame, group, component or instance',
 				)
 			}
 		} else {
@@ -356,7 +356,7 @@ async function main() {
 					}
 				} else {
 					var nearestIcon = getNearestIcon(
-						figma.currentPage.selection[0]
+						figma.currentPage.selection[0],
 					)
 					if (nearestIcon) {
 						setPreview(nearestIcon)
@@ -395,43 +395,47 @@ async function main() {
 	}, 375)
 }
 
-main()
-
-if (figma.command === 'previewIcon') {
+export default function () {
 	main()
-}
 
-figma.ui.onmessage = (msg) => {
-	if (msg.type === 'set-preview') {
-		if (figma.currentPage.selection.length === 0) {
-			setPreview(figma.currentPage.selection[0])
-		}
+	if (figma.command === 'previewIcon') {
+		main()
 	}
 
-	if (msg.type === 'lock-preview') {
-		if (!msg.locked) {
-			if (figma.currentPage.selection.length === 1) {
-				var nearestIcon = getNearestIcon(figma.currentPage.selection[0])
-
-				if (nearestIcon) {
-					setPreview(nearestIcon)
-				}
+	figma.ui.onmessage = (msg) => {
+		if (msg.type === 'set-preview') {
+			if (figma.currentPage.selection.length === 0) {
+				setPreview(figma.currentPage.selection[0])
 			}
 		}
-		cachedPreviewLocked = msg.locked
+
+		if (msg.type === 'lock-preview') {
+			if (!msg.locked) {
+				if (figma.currentPage.selection.length === 1) {
+					var nearestIcon = getNearestIcon(
+						figma.currentPage.selection[0],
+					)
+
+					if (nearestIcon) {
+						setPreview(nearestIcon)
+					}
+				}
+			}
+			cachedPreviewLocked = msg.locked
+		}
+
+		if (msg.type === 'resize') {
+			figma.ui.resize(msg.size.width, msg.size.height)
+			cachedUiSize = msg.size
+		}
+
+		if (msg.type === 'scroll-position') {
+			cachedScrollPos = msg.pos
+		}
 	}
 
-	if (msg.type === 'resize') {
-		figma.ui.resize(msg.size.width, msg.size.height)
-		cachedUiSize = msg.size
-	}
-
-	if (msg.type === 'scroll-position') {
-		cachedScrollPos = msg.pos
-	}
+	figma.on('close', () => {
+		setClientStorageAsync('uiSize', cachedUiSize)
+		setClientStorageAsync('scrollPos', cachedScrollPos)
+	})
 }
-
-figma.on('close', () => {
-	setClientStorageAsync('uiSize', cachedUiSize)
-	setClientStorageAsync('scrollPos', cachedScrollPos)
-})

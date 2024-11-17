@@ -1,0 +1,13 @@
+{
+	"name": "Icon Preview",
+	"id": "888907972695800109",
+	"api": "1.0.0",
+	"main": "src/code.ts",
+	"ui": "src/ui.ts",
+	"editorType": ["figma"],
+	"relaunchButtons": [{ "command": "previewIcon", "name": "Preview icon" }],
+	"networkAccess": {
+		"allowedDomains": ["none"],
+		"devAllowedDomains": ["http://localhost:*", "ws://localhost:9001"]
+	}
+}
