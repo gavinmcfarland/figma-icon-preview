@@ -260,6 +260,7 @@ function setPreview(node) {
 		if (!cachedPreviewLocked) {
 			setCurrentIcon(node)
 			figma.ui.postMessage({
+				type: 'GET_ICON',
 				currentIconThumbnail: selectedImage,
 				thumbnails: thumbnailSettings,
 			})
@@ -337,49 +338,51 @@ async function main() {
 		figma.closePlugin('Select one icon at a time')
 	}
 
-	// figma.on('selectionchange', () => {
-	// 	if (figma.currentPage.selection.length === 1) {
-	// 		if (
-	// 			isInsideContainer(figma.currentPage.selection[0], currentIcon)
-	// 		) {
-	// 			cachedSelectedThumbnail = undefined
-	// 			figma.ui.postMessage({
-	// 				selectedIconThumbnail: undefined,
-	// 			})
-	// 		} else {
-	// 			if (isIcon(figma.currentPage.selection[0])) {
-	// 				selectedIcon = figma.currentPage.selection[0]
-	// 				if (figma.currentPage.selection.length === 1) {
-	// 					if (isIcon(figma.currentPage.selection[0])) {
-	// 						setPreview(selectedIcon)
-	// 					}
-	// 				}
-	// 			} else {
-	// 				var nearestIcon = getNearestIcon(
-	// 					figma.currentPage.selection[0],
-	// 				)
-	// 				if (nearestIcon) {
-	// 					setPreview(nearestIcon)
-	// 				} else {
-	// 					cachedSelectedThumbnail = undefined
-	// 				}
-	// 			}
-	// 		}
-	// 	} else {
-	// 		cachedSelectedThumbnail = undefined
-	// 		// getSelectedIconImage(selectedIcon).then((selectedImage) => {
-	// 		figma.ui.postMessage({
-	// 			selectedIconThumbnail: undefined,
-	// 		})
-	// 		// })
-	// 	}
-	// })
+	figma.on('selectionchange', () => {
+		if (figma.currentPage.selection.length === 1) {
+			if (
+				isInsideContainer(figma.currentPage.selection[0], currentIcon)
+			) {
+				cachedSelectedThumbnail = undefined
+				figma.ui.postMessage({
+					type: 'GET_ICON',
+					selectedIconThumbnail: undefined,
+				})
+			} else {
+				if (isIcon(figma.currentPage.selection[0])) {
+					selectedIcon = figma.currentPage.selection[0]
+					if (figma.currentPage.selection.length === 1) {
+						if (isIcon(figma.currentPage.selection[0])) {
+							setPreview(selectedIcon)
+						}
+					}
+				} else {
+					var nearestIcon = getNearestIcon(
+						figma.currentPage.selection[0],
+					)
+					if (nearestIcon) {
+						setPreview(nearestIcon)
+					} else {
+						cachedSelectedThumbnail = undefined
+					}
+				}
+			}
+		} else {
+			cachedSelectedThumbnail = undefined
+			// getSelectedIconImage(selectedIcon).then((selectedImage) => {
+			figma.ui.postMessage({
+				type: 'GET_ICON',
+				selectedIconThumbnail: undefined,
+			})
+			// })
+		}
+	})
 
 	setInterval(() => {
 		if (currentIcon && figma.getNodeById(currentIcon.id)) {
 			getCurrentIconImage(currentIcon).then((currentImage) => {
-				console.log({ currentImage })
 				figma.ui.postMessage({
+					type: 'GET_ICON',
 					currentIconThumbnail: currentImage,
 					thumbnails: thumbnailSettings,
 					// selectedIconThumbnail: cachedSelectedThumbnail,
@@ -388,6 +391,7 @@ async function main() {
 			})
 		} else {
 			figma.ui.postMessage({
+				type: 'GET_ICON',
 				currentIconThumnail: undefined,
 				thumbnails: thumbnailSettings,
 				canvasColor: getCanvasColor(),

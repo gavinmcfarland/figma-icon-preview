@@ -1,5 +1,5 @@
 <script lang="ts">
-	// import Field from './Field.svelte'
+	// FIXME: I think, when buffer sent via websockets is lost when recieved
 	import { onMount } from 'svelte'
 	import './reset.css'
 
@@ -304,83 +304,97 @@
 		window.onmessage = async (event) => {
 			message = await event.data.pluginMessage
 
-			// previewLocked = message.previewLocked
+			if (message.type === 'GET_ICON') {
+				console.log('GET_ICON', message)
 
-			const thumbnails = root.querySelector('#thumbnails')
+				// previewLocked = message.previewLocked
 
-			if (thumbnailWrapper && message.scrollPos) {
-				setScrollPos(thumbnailWrapper, message.scrollPos)
-			}
+				const thumbnails = root.querySelector('#thumbnails')
 
-			setInterval(() => {
-				postScrollPos(thumbnailWrapper)
-			}, 300)
-
-			if (message.canvasColor) {
-				canvasColor = message.canvasColor
-				oppositeColor = getCorrectTextColor(message.canvasColor)
-				// root.style.backgroundColor = message.canvasColor
-			}
-
-			// console.log(message)
-
-			selectedIconThumbnail = message?.selectedIconThumbnail
-
-			if (selectedIconThumbnail) {
-				// const ctx2 = canvas2.getContext('2d')
-				// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
-				var svg = createSvg(message.selectedIconThumbnail)
-				// svg.style.width = "16px"
-				// svg.style.height = "16px"
-				preview.classList.add('show')
-				svg.style.width = 16
-				svg.style.height = 16
-				thumbnail.appendChild(svg)
-				thumbnail.replaceChild(svg, thumbnail.children[0])
-				// thumbnail.children[0].parentNode.replaceChild(svg, thumbnail.children[0])
-			} else {
-				preview.classList.remove('show')
-			}
-
-			if (message) {
-				var canvas
-				if (message.currentIconThumbnail) {
-					canvas = createSvg(message.currentIconThumbnail)
+				if (thumbnailWrapper && message.scrollPos) {
+					setScrollPos(thumbnailWrapper, message.scrollPos)
 				}
 
-				if (message.thumbnails) {
-					for (let i = 0; i < message.thumbnails.length; i++) {
-						if (thumbnails.children[i]) {
-							let clone
-							if (message.currentIconThumbnail && canvas) {
-								clone = canvas.cloneNode(true)
-								clone.style.width = message.thumbnails[i].size
-								clone.style.height = message.thumbnails[i].size
-								thumbnails.children[i].appendChild(clone)
-								thumbnails.children[
-									i
-								].children[0].parentNode.replaceChild(
-									clone,
-									thumbnails.children[i].children[0],
-								)
-							} else {
-								if (thumbnails.children[i].children[0])
+				setInterval(() => {
+					postScrollPos(thumbnailWrapper)
+				}, 300)
+
+				if (message.canvasColor) {
+					canvasColor = message.canvasColor
+					oppositeColor = getCorrectTextColor(message.canvasColor)
+					// root.style.backgroundColor = message.canvasColor
+				}
+
+				// console.log(message)
+
+				selectedIconThumbnail = message?.selectedIconThumbnail
+
+				if (selectedIconThumbnail) {
+					// const ctx2 = canvas2.getContext('2d')
+					// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
+					var svg = createSvg(message.selectedIconThumbnail)
+					// svg.style.width = "16px"
+					// svg.style.height = "16px"
+					preview.classList.add('show')
+					svg.style.width = 16
+					svg.style.height = 16
+					thumbnail.appendChild(svg)
+					thumbnail.replaceChild(svg, thumbnail.children[0])
+					// thumbnail.children[0].parentNode.replaceChild(svg, thumbnail.children[0])
+				} else {
+					preview.classList.remove('show')
+				}
+
+				if (message) {
+					var canvas
+					if (message.currentIconThumbnail) {
+						canvas = createSvg(message.currentIconThumbnail)
+					}
+
+					if (message.thumbnails) {
+						for (let i = 0; i < message.thumbnails.length; i++) {
+							if (thumbnails.children[i]) {
+								let clone
+								if (message.currentIconThumbnail && canvas) {
+									clone = canvas.cloneNode(true)
+									clone.style.width =
+										message.thumbnails[i].size
+									clone.style.height =
+										message.thumbnails[i].size
+									thumbnails.children[i].appendChild(clone)
 									thumbnails.children[
 										i
-									].children[0].style.display = 'none'
-							}
+									].children[0].parentNode.replaceChild(
+										clone,
+										thumbnails.children[i].children[0],
+									)
+								} else {
+									if (thumbnails.children[i].children[0])
+										thumbnails.children[
+											i
+										].children[0].style.display = 'none'
+								}
 
-							thumbnails.children[
-								i
-							].children[1].children[1].children[0].innerHTML =
-								message.thumbnails[i].size
+								thumbnails.children[
+									i
+								].children[1].children[1].children[0].innerHTML =
+									message.thumbnails[i].size
 
-							if (message.thumbnails[i].group) {
-								if (i > 0) {
-									if (
-										message.thumbnails[i].group !==
-										message.thumbnails[i - 1].group
-									) {
+								if (message.thumbnails[i].group) {
+									if (i > 0) {
+										if (
+											message.thumbnails[i].group !==
+											message.thumbnails[i - 1].group
+										) {
+											thumbnails.children[
+												i
+											].children[1].children[0].innerHTML =
+												message.thumbnails[i].group
+											thumbnails.children[
+												i
+											].classList.add('first')
+										}
+									} else {
 										thumbnails.children[
 											i
 										].children[1].children[0].innerHTML =
@@ -389,29 +403,21 @@
 											'first',
 										)
 									}
-								} else {
+								}
+
+								if (message.thumbnails[i].label) {
 									thumbnails.children[
 										i
-									].children[1].children[0].innerHTML =
-										message.thumbnails[i].group
-									thumbnails.children[i].classList.add(
-										'first',
-									)
+									].children[1].children[1].children[1].innerHTML =
+										message.thumbnails[i].label
 								}
-							}
-
-							if (message.thumbnails[i].label) {
-								thumbnails.children[
-									i
-								].children[1].children[1].children[1].innerHTML =
-									message.thumbnails[i].label
 							}
 						}
 					}
+				} else {
+					// preview.classList.add('hide')
+					// selectIcon.classList.add('show')
 				}
-			} else {
-				// preview.classList.add('hide')
-				// selectIcon.classList.add('show')
 			}
 		}
 	})
