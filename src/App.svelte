@@ -11,7 +11,7 @@
 	let canvas2
 	let thumbnail
 	let preview
-	let canvasColor = '#ffffff'
+	let canvasColor = 'transparent'
 	let oppositeColor
 	let selectedIconThumbnail
 	let thumbnailWrapper
@@ -305,7 +305,6 @@
 			message = await event.data.pluginMessage
 
 			if (message.type === 'GET_ICON') {
-				console.log('GET_ICON', message)
 
 				// previewLocked = message.previewLocked
 
@@ -705,6 +704,11 @@
 		</div> -->
 
 <style global>
+	:global body,
+	:global html {
+	background-color: var(--figma-color-bg);
+}
+
 	:global(*) {
 		box-sizing: border-box;
 	}
@@ -887,40 +891,6 @@
 		font-family: 'Inter', sans-serif;
 		margin: 0;
 		padding: 0;
-	}
-
-	/*  FONTS */
-	@font-face {
-		font-family: 'Inter';
-		font-weight: 400;
-		font-style: normal;
-		src:
-			url('https://rsms.me/inter/font-files/Inter-Regular.woff2?v=3.7')
-				format('woff2'),
-			url('https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.7')
-				format('woff');
-	}
-
-	@font-face {
-		font-family: 'Inter';
-		font-weight: 500;
-		font-style: normal;
-		src:
-			url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7')
-				format('woff2'),
-			url('https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.7')
-				format('woff');
-	}
-
-	@font-face {
-		font-family: 'Inter';
-		font-weight: 600;
-		font-style: normal;
-		src:
-			url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7')
-				format('woff2'),
-			url('https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.7')
-				format('woff');
 	}
 
 	/* UTILITIES */

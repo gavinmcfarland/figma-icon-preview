@@ -378,7 +378,7 @@ async function main() {
 		}
 	})
 
-	setInterval(() => {
+	function getIcon() {
 		if (currentIcon && figma.getNodeById(currentIcon.id)) {
 			getCurrentIconImage(currentIcon).then((currentImage) => {
 				figma.ui.postMessage({
@@ -397,6 +397,12 @@ async function main() {
 				canvasColor: getCanvasColor(),
 			})
 		}
+	}
+
+	getIcon()
+
+	setInterval(() => {
+		getIcon()
 	}, 375)
 }
 
