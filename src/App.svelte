@@ -106,73 +106,6 @@
 		)
 	}
 
-	// onMount(() => {
-	// 	const thumbnails = root.querySelector('#thumbnails')
-
-	// 	window.onmessage = async (event) => {
-	// 		message = event.data.pluginMessage
-
-	// 		// console.log(message)
-
-	// 		if (message) {
-
-	// 			if (message.selectedIconThumbnail) {
-	// 				const ctx2 = canvas2.getContext('2d')
-	// 				await decodeImage(canvas2, ctx2, message.selectedIconThumbnail)
-	// 				preview.classList.add('show')
-	// 				thumbnail.appendChild(canvas2)
-	// 				thumbnail.children[0].parentNode.replaceChild(canvas2, thumbnail.children[0])
-	// 			}
-	// 			else {
-	// 				preview.classList.remove('show')
-	// 			}
-
-	// 			if (message.thumbnails) {
-	// 				// iconName.innerHTML = message.name
-	// 				console.log(message.thumbnails)
-
-	// 				for (let i = 0; i < message.thumbnails.length; i++) {
-	// 					if (thumbnails.children[i]) {
-	// 						const canvas = document.createElement('canvas')
-
-	// 						const ctx = canvas.getContext('2d')
-
-	// 						var bytes = message.thumbnails[i].image
-
-	// 						await decodeImage(canvas, ctx, bytes)
-
-	// 						thumbnails.children[i].appendChild(canvas)
-	// 						thumbnails.children[i].children[0].parentNode.replaceChild(canvas, thumbnails.children[i].children[0])
-	// 						thumbnails.children[i].children[1].children[1].children[0].innerHTML = message.thumbnails[i].size
-
-	// 						if (message.thumbnails[i].group) {
-	// 							if (i > 0) {
-	// 								if (
-	// 									message.thumbnails[i].group !== message.thumbnails[i - 1].group
-	// 								) {
-	// 									thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
-	// 									thumbnails.children[i].classList.add('first')
-	// 								}
-	// 							} else {
-	// 								thumbnails.children[i].children[1].children[0].innerHTML = message.thumbnails[i].group
-	// 								thumbnails.children[i].classList.add('first')
-	// 							}
-	// 						}
-
-	// 						if (message.thumbnails[i].label) {
-	// 							thumbnails.children[i].children[1].children[1].children[1].innerHTML = message.thumbnails[i].label
-	// 						}
-	// 					}
-	// 				}
-	// 			}
-
-	// 		} else {
-	// 			// preview.classList.add('hide')
-	// 			// selectIcon.classList.add('show')
-	// 		}
-	// 	}
-	// })
-
 	async function genThumbnailImage(bytes) {
 		const canvas = document.createElement('canvas')
 		const ctx = canvas.getContext('2d')
@@ -237,24 +170,6 @@
 		}
 	}
 
-	// //test colortable
-	// var colPairs = new Array("00","22","44","66","99","aa","cc","ff");
-	// for(i=0;i<colPairs.length;i++){
-	// 	for(j=0;j<colPairs.length;j++){
-	// 		for(k=0;k<colPairs.length;k++){
-	// 			//build a hexcode
-	// 			var theColor = "#"+colPairs[i]+colPairs[j]+colPairs[k];
-
-	// 			//checkf for correct textcolor in passed hexcode
-	// 			var textcolor = getCorrectTextColor(theColor);
-
-	// 			//output div
-	// 			document.write("<div style='background-color:" + theColor + ";color:"+textcolor+";' class='colorblock'>" + theColor + "</div>");
-	// 		}
-	// 		document.write("<br/>");
-	// 	}
-	// }
-
 	function postScrollPos(element) {
 		var scrollPos = { top: element.scrollTop, left: element.scrollLeft }
 		// console.log(scrollPos)
@@ -305,7 +220,6 @@
 			message = await event.data.pluginMessage
 
 			if (message.type === 'GET_ICON') {
-
 				// previewLocked = message.previewLocked
 
 				const thumbnails = root.querySelector('#thumbnails')
@@ -328,20 +242,20 @@
 
 				selectedIconThumbnail = message?.selectedIconThumbnail
 
-				if (selectedIconThumbnail) {
+				if (message?.selectedIconThumbnail) {
+					thumbnailWrapper.classList.remove('hide')
 					// const ctx2 = canvas2.getContext('2d')
 					// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
 					var svg = createSvg(message.selectedIconThumbnail)
 					// svg.style.width = "16px"
 					// svg.style.height = "16px"
-					preview.classList.add('show')
+					// preview.classList.add('show')
 					svg.style.width = 16
 					svg.style.height = 16
 					thumbnail.appendChild(svg)
 					thumbnail.replaceChild(svg, thumbnail.children[0])
-					// thumbnail.children[0].parentNode.replaceChild(svg, thumbnail.children[0])
 				} else {
-					preview.classList.remove('show')
+					thumbnailWrapper.classList.add('hide')
 				}
 
 				if (message) {
@@ -354,7 +268,11 @@
 						for (let i = 0; i < message.thumbnails.length; i++) {
 							if (thumbnails.children[i]) {
 								let clone
-								if (message.currentIconThumbnail && canvas) {
+								if (
+									message.currentIconThumbnail &&
+									canvas &&
+									message.selectedIconThumbnail
+								) {
 									clone = canvas.cloneNode(true)
 									clone.style.width =
 										message.thumbnails[i].size
@@ -368,10 +286,11 @@
 										thumbnails.children[i].children[0],
 									)
 								} else {
-									if (thumbnails.children[i].children[0])
+									if (thumbnails.children[i].children[0]) {
 										thumbnails.children[
 											i
 										].children[0].style.display = 'none'
+									}
 								}
 
 								thumbnails.children[
@@ -428,18 +347,19 @@
 		bind:this={actionbar}
 		class="p-xxsmall flex"
 		style="justify-content: space-between;">
-		<button
+		<!-- <button
 			id="refresh"
-			style="background-color: {canvasColor}; color: {oppositeColor}; border-color: {oppositeColor};"
 			bind:this={preview}
 			on:click={() => {
 				setPreview()
 			}}
 			class="previewButton button button--secondary"
-			><div id="thumbnail" bind:this={thumbnail}>
-				<canvas bind:this={canvas2} width="16" height="16"></canvas>
-			</div>
-			<span style="white-space: nowrap;">Swap</span></button>
+			> -->
+		<div id="thumbnail" bind:this={thumbnail} style="display: none">
+			<canvas bind:this={canvas2} width="16" height="16"></canvas>
+		</div>
+		<!-- <span style="white-space: nowrap;">Swap</span>
+		</button> -->
 		<button
 			id="lock"
 			style="color: {oppositeColor}; --hover-color: {hexToRgba(
@@ -706,8 +626,8 @@
 <style global>
 	:global body,
 	:global html {
-	background-color: var(--figma-color-bg);
-}
+		background-color: var(--figma-color-bg);
+	}
 
 	:global(*) {
 		box-sizing: border-box;
@@ -727,6 +647,10 @@
 
 	.show {
 		display: block;
+	}
+
+	.hide {
+		display: none;
 	}
 
 	#thumbnail {

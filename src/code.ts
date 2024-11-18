@@ -162,32 +162,13 @@ function getNearestIcon(node) {
 	if (isIcon(node)) {
 		return node
 	} else {
-		if (node.parent) {
-			return getNearestIcon(node.parent)
+		if (node) {
+			if (node.parent) {
+				return getNearestIcon(node.parent)
+			}
 		}
 	}
 }
-
-// async function getCurrentIconImage(node, refresh?) {
-
-// 	if (node) {
-// 		message = {
-// 			thumbnails: []
-// 		}
-
-// 		message.currentIconThumbnail = await generateThumbnail(node)
-
-// 		for (let i = 0; i < thumbnailSettings.length; i++) {
-// 			message.thumbnails.push({})
-// 			message.thumbnails[i].size = thumbnailSettings[i].size
-// 			message.thumbnails[i].group = thumbnailSettings[i].group
-// 			message.thumbnails[i].label = thumbnailSettings[i].label
-// 		}
-
-// 		return message
-// 	}
-
-// }
 
 async function getSelectedIconImage(node) {
 	if (node) {
@@ -257,15 +238,89 @@ function setCurrentIcon(node?) {
 
 function setPreview(node) {
 	getSelectedIconImage(node).then((selectedImage) => {
-		if (!cachedPreviewLocked) {
-			setCurrentIcon(node)
-			figma.ui.postMessage({
-				type: 'GET_ICON',
-				currentIconThumbnail: selectedImage,
-				thumbnails: thumbnailSettings,
-			})
-		}
+		setCurrentIcon(node)
+		figma.ui.postMessage({
+			type: 'GET_ICON',
+			currentIconThumbnail: selectedImage,
+			thumbnails: thumbnailSettings,
+			selectedIconThumbnail: selectedImage,
+		})
 	})
+}
+
+function postIcon(scrollPos) {
+	const selection = figma.currentPage.selection
+	const selectedItem = selection[0]
+	if (
+		selection &&
+		selection.length === 1 &&
+		isSmall(selectedItem) &&
+		isBox(selectedItem) &&
+		isSquare(selectedItem)
+	) {
+		getSelectedIconImage(figma.currentPage.selection[0]).then(
+			(selectedImage) => {
+				getCurrentIconImage(currentIcon).then((currentImage) => {
+					var selectedIconThumbnail
+					if (figma.currentPage.selection[0].id !== currentIcon.id) {
+						selectedIconThumbnail = selectedImage
+					}
+					figma.ui.postMessage({
+						type: 'GET_ICON',
+						thumbnails: thumbnailSettings,
+						currentIconThumbnail: currentImage,
+						selectedIconThumbnail: currentImage,
+						canvasColor: getCanvasColor(),
+						scrollPos,
+					})
+				})
+			},
+		)
+	}
+}
+
+function triggerNotification() {
+	const selection = figma.currentPage.selection
+	let hasIssues = false
+
+	switch (selection.length) {
+		case 0:
+			figma.notify('Select an icon')
+			hasIssues = true
+			break
+
+		case 1: {
+			const selectedItem = selection[0]
+
+			if (!isSmall(selectedItem)) {
+				figma.notify('Icon must be 256px or smaller')
+				hasIssues = true
+			}
+
+			if (!isBox(selectedItem)) {
+				figma.notify(
+					'Selection must be a frame, group, component or instance',
+				)
+				hasIssues = true
+			}
+
+			if (!isSquare(selectedItem)) {
+				figma.notify('Selection must be square')
+				hasIssues = true
+			}
+			break
+		}
+
+		default:
+			figma.notify('Select one icon at a time')
+			hasIssues = true
+			break
+	}
+
+	// Proceed with additional logic only if no issues were found
+	if (!hasIssues) {
+		// Additional logic here if all conditions are met
+	}
 }
 
 selectedIcon = figma.currentPage.selection[0]
@@ -288,98 +343,75 @@ async function main() {
 	cachedUiSize = uiSize
 	cachedScrollPos = cachedUiSize
 
-	if (figma.currentPage.selection.length === 1) {
-		if (isSmall(figma.currentPage.selection[0])) {
-			if (isBox(figma.currentPage.selection[0])) {
-				if (isSquare(figma.currentPage.selection[0])) {
-					figma.showUI(__html__, { ...uiSize, themeColors: true })
+	figma.showUI(__html__, { ...uiSize, themeColors: true })
 
-					setCurrentIcon()
-					currentIcon.setRelaunchData({
-						previewIcon: 'Preview the currently selected icon',
-					})
-
-					getSelectedIconImage(figma.currentPage.selection[0]).then(
-						(selectedImage) => {
-							getCurrentIconImage(currentIcon).then(
-								(currentImage) => {
-									var selectedIconThumbnail
-									if (
-										figma.currentPage.selection[0].id !==
-										currentIcon.id
-									) {
-										selectedIconThumbnail = selectedImage
-									}
-									figma.ui.postMessage({
-										thumbnails: thumbnailSettings,
-										currentIconThumbnail: currentImage,
-										selectedIconThumbnail,
-										canvasColor: getCanvasColor(),
-										scrollPos,
-									})
-								},
-							)
-						},
-					)
-				} else {
-					figma.closePlugin('Selection must be square')
-				}
-			} else {
-				figma.closePlugin(
-					'Selection must be a frame, group, component or instance',
-				)
-			}
-		} else {
-			figma.closePlugin('Icon must be 256px or smaller')
-		}
-	} else if (figma.currentPage.selection.length === 0) {
-		figma.closePlugin('Select an icon')
-	} else {
-		figma.closePlugin('Select one icon at a time')
+	setCurrentIcon()
+	if (currentIcon) {
+		currentIcon.setRelaunchData({
+			previewIcon: 'Preview the currently selected icon',
+		})
 	}
 
+	postIcon(scrollPos)
+
+	triggerNotification()
+
 	figma.on('selectionchange', () => {
-		if (figma.currentPage.selection.length === 1) {
-			if (
-				isInsideContainer(figma.currentPage.selection[0], currentIcon)
-			) {
+		if (!cachedPreviewLocked) {
+			if (figma.currentPage.selection.length === 1) {
+				if (
+					isInsideContainer(
+						figma.currentPage.selection[0],
+						currentIcon,
+					)
+				) {
+					cachedSelectedThumbnail = undefined
+					figma.ui.postMessage({
+						type: 'GET_ICON',
+						selectedIconThumbnail: undefined,
+						currentIconThumbnail: undefined,
+						thumbnails: undefined,
+					})
+				} else {
+					if (isIcon(figma.currentPage.selection[0])) {
+						selectedIcon = figma.currentPage.selection[0]
+						if (figma.currentPage.selection.length === 1) {
+							if (isIcon(figma.currentPage.selection[0])) {
+								setPreview(selectedIcon)
+							}
+						}
+					} else {
+						var nearestIcon = getNearestIcon(
+							figma.currentPage.selection[0],
+						)
+						if (nearestIcon) {
+							setPreview(nearestIcon)
+						} else {
+							cachedSelectedThumbnail = undefined
+						}
+					}
+				}
+			} else {
 				cachedSelectedThumbnail = undefined
+				// getSelectedIconImage(selectedIcon).then((selectedImage) => {
 				figma.ui.postMessage({
 					type: 'GET_ICON',
 					selectedIconThumbnail: undefined,
+					currentIconThumbnail: undefined,
+					thumbnails: undefined,
 				})
-			} else {
-				if (isIcon(figma.currentPage.selection[0])) {
-					selectedIcon = figma.currentPage.selection[0]
-					if (figma.currentPage.selection.length === 1) {
-						if (isIcon(figma.currentPage.selection[0])) {
-							setPreview(selectedIcon)
-						}
-					}
-				} else {
-					var nearestIcon = getNearestIcon(
-						figma.currentPage.selection[0],
-					)
-					if (nearestIcon) {
-						setPreview(nearestIcon)
-					} else {
-						cachedSelectedThumbnail = undefined
-					}
-				}
+
+				// })
 			}
-		} else {
-			cachedSelectedThumbnail = undefined
-			// getSelectedIconImage(selectedIcon).then((selectedImage) => {
-			figma.ui.postMessage({
-				type: 'GET_ICON',
-				selectedIconThumbnail: undefined,
-			})
-			// })
 		}
 	})
 
 	function getIcon() {
-		if (currentIcon && figma.getNodeById(currentIcon.id)) {
+		if (
+			currentIcon &&
+			figma.getNodeById(currentIcon.id) &&
+			(figma.currentPage.selection.length === 1 || cachedPreviewLocked)
+		) {
 			getCurrentIconImage(currentIcon).then((currentImage) => {
 				figma.ui.postMessage({
 					type: 'GET_ICON',
@@ -387,6 +419,7 @@ async function main() {
 					thumbnails: thumbnailSettings,
 					// selectedIconThumbnail: cachedSelectedThumbnail,
 					canvasColor: getCanvasColor(),
+					selectedIconThumbnail: currentImage,
 				})
 			})
 		} else {
@@ -395,6 +428,7 @@ async function main() {
 				currentIconThumnail: undefined,
 				thumbnails: thumbnailSettings,
 				canvasColor: getCanvasColor(),
+				selectedIconThumbnail: undefined,
 			})
 		}
 	}
@@ -404,6 +438,7 @@ async function main() {
 	setInterval(() => {
 		getIcon()
 	}, 375)
+	375
 }
 
 export default function () {
