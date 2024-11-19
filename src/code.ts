@@ -438,7 +438,6 @@ async function main() {
 	setInterval(() => {
 		getIcon()
 	}, 375)
-	375
 }
 
 export default function () {

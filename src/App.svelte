@@ -48,49 +48,6 @@
 		// };
 	}
 
-	async function figmaImageDataToCanvas(
-		data: Uint8Array,
-	): Promise<HTMLCanvasElement> {
-		const canvas = document.createElement('canvas')
-		const ctx = canvas.getContext('2d')
-		const url = URL.createObjectURL(new Blob([data]))
-		const image: HTMLImageElement = await new Promise((resolve, reject) => {
-			const img = new Image()
-			img.onload = () => resolve(img)
-			img.onerror = () => reject()
-			img.src = url
-		})
-		canvas.width = image.width
-		canvas.height = image.height
-		ctx.drawImage(image, 0, 0)
-		return canvas
-	}
-
-	async function decodeImage(canvas, ctx, bytes, size) {
-		var scale = 1
-		const url = URL.createObjectURL(new Blob([bytes]))
-
-		const image = await new Promise((resolve, reject) => {
-			const img = new Image()
-			img.onload = () => resolve(img)
-			img.onerror = () => reject()
-			img.src = url
-		})
-
-		canvas.width = image.width
-		canvas.height = image.height
-		canvas.style.width = size + 'px'
-		canvas.style.height = size + 'px'
-		ctx.drawImage(image, 0, 0)
-		const imageData = ctx.getImageData(0, 0, image.width, image.height)
-		return imageData
-	}
-
-	function setPreview() {
-		selectedIconThumbnail = undefined
-		parent.postMessage({ pluginMessage: { type: 'set-preview' } }, '*')
-	}
-
 	function lockPreview() {
 		selectedIconThumbnail = undefined
 
@@ -104,32 +61,6 @@
 			{ pluginMessage: { type: 'lock-preview', locked: previewLocked } },
 			'*',
 		)
-	}
-
-	async function genThumbnailImage(bytes) {
-		const canvas = document.createElement('canvas')
-		const ctx = canvas.getContext('2d')
-		var imageData = await decodeImage(canvas, ctx, bytes, 84)
-		return {
-			imageData,
-			canvas,
-		}
-	}
-
-	function cloneCanvas(oldCanvas) {
-		//create a new canvas
-		var newCanvas = document.createElement('canvas')
-		var context = newCanvas.getContext('2d')
-
-		//set dimensions
-		newCanvas.width = oldCanvas.width
-		newCanvas.height = oldCanvas.height
-
-		//apply the old canvas to the new one
-		context.drawImage(oldCanvas, 0, 0)
-
-		//return the new canvas
-		return newCanvas
 	}
 
 	function getCorrectTextColor(hex) {
@@ -205,14 +136,16 @@
 		}
 	}
 
-	function createSvg(svgString) {
-		var container = document.createElement('div')
-		container.innerHTML = String.fromCharCode.apply(null, svgString)
-		var child = container.children[0]
-		// var svg = child.cloneNode(true)
-		// container.remove()
-		// child.remove()
-		return child
+	function createSvg(uint8Array) {
+		// Decode the Uint8Array into a string
+		const svgString = new TextDecoder().decode(uint8Array);
+
+		// Parse the string into an SVG DOM element
+		const parser = new DOMParser();
+		const svgDoc = parser.parseFromString(svgString, "image/svg+xml");
+
+		// Return the root SVG element
+		return svgDoc.documentElement;
 	}
 
 	onMount(() => {
@@ -238,25 +171,7 @@
 					// root.style.backgroundColor = message.canvasColor
 				}
 
-				// console.log(message)
-
 				selectedIconThumbnail = message?.selectedIconThumbnail
-
-				if (message?.selectedIconThumbnail) {
-					thumbnailWrapper.classList.remove('hide')
-					// const ctx2 = canvas2.getContext('2d')
-					// await decodeImage(canvas2, ctx2, message.selectedIconThumbnail, 16)
-					var svg = createSvg(message.selectedIconThumbnail)
-					// svg.style.width = "16px"
-					// svg.style.height = "16px"
-					// preview.classList.add('show')
-					svg.style.width = 16
-					svg.style.height = 16
-					thumbnail.appendChild(svg)
-					thumbnail.replaceChild(svg, thumbnail.children[0])
-				} else {
-					thumbnailWrapper.classList.add('hide')
-				}
 
 				if (message) {
 					var canvas
@@ -332,9 +247,6 @@
 							}
 						}
 					}
-				} else {
-					// preview.classList.add('hide')
-					// selectIcon.classList.add('show')
 				}
 			}
 		}
@@ -347,19 +259,7 @@
 		bind:this={actionbar}
 		class="p-xxsmall flex"
 		style="justify-content: space-between;">
-		<!-- <button
-			id="refresh"
-			bind:this={preview}
-			on:click={() => {
-				setPreview()
-			}}
-			class="previewButton button button--secondary"
-			> -->
-		<div id="thumbnail" bind:this={thumbnail} style="display: none">
-			<canvas bind:this={canvas2} width="16" height="16"></canvas>
-		</div>
-		<!-- <span style="white-space: nowrap;">Swap</span>
-		</button> -->
+
 		<button
 			id="lock"
 			style="color: {oppositeColor}; --hover-color: {hexToRgba(
