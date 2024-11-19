@@ -149,6 +149,7 @@
 	}
 
 	onMount(() => {
+
 		window.onmessage = async (event) => {
 			message = await event.data.pluginMessage
 

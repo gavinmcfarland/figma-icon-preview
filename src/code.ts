@@ -442,6 +442,7 @@ async function main() {
 
 export default function () {
 	main()
+	console.log(import.meta.env.MODE)
 
 	if (figma.command === 'previewIcon') {
 		main()
