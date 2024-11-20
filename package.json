@@ -12,7 +12,7 @@
     "@figlets/helpers": "*",
     "@figma/plugin-typings": "^1.102.0",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "plugma": "^1.2.1",
+    "plugma": "^1.2.4",
     "svelte": "^5.2.0"
   },
   "dependencies": {

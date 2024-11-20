@@ -102,15 +102,17 @@
 	}
 
 	function postScrollPos(element) {
-		var scrollPos = { top: element.scrollTop, left: element.scrollLeft }
-		// console.log(scrollPos)
-		parent.postMessage(
-			{ pluginMessage: { type: 'scroll-position', pos: scrollPos } },
-			'*',
-		)
+		if (element) {
+			var scrollPos = { top: element.scrollTop, left: element.scrollLeft }
+			parent.postMessage(
+				{ pluginMessage: { type: 'scroll-position', pos: scrollPos } },
+				'*',
+			)
+		}
 	}
 
 	function setScrollPos(element, pos) {
+
 		element.scrollTop = pos.top
 		element.scrollLeft = pos.left
 	}
@@ -138,33 +140,50 @@
 
 	function createSvg(uint8Array) {
 		// Decode the Uint8Array into a string
-		const svgString = new TextDecoder().decode(uint8Array);
+		const svgString = new TextDecoder().decode(uint8Array)
 
 		// Parse the string into an SVG DOM element
-		const parser = new DOMParser();
-		const svgDoc = parser.parseFromString(svgString, "image/svg+xml");
+		const parser = new DOMParser()
+		const svgDoc = parser.parseFromString(svgString, 'image/svg+xml')
 
 		// Return the root SVG element
-		return svgDoc.documentElement;
+		return svgDoc.documentElement
+	}
+
+	$: {
+		document.body.style.backgroundColor = canvasColor
 	}
 
 	onMount(() => {
+		if (thumbnailWrapper) {
+			setInterval(() => {
+				postScrollPos(thumbnailWrapper)
+			}, 300)
+		}
+
+		parent.postMessage({
+			pluginMessage: {
+				type: "UI_LOADED"
+			}
+		}, "*")
 
 		window.onmessage = async (event) => {
 			message = await event.data.pluginMessage
+
+			if (message.type === 'POST_SAVED_SCROLL_POS') {
+
+				// Using timeout to avoid issue when toolbar present in dev mode
+				let scrollPos = message.pos
+				setTimeout(() => {
+					setScrollPos(thumbnailWrapper, scrollPos)
+				}, 10)
+
+			}
 
 			if (message.type === 'GET_ICON') {
 				// previewLocked = message.previewLocked
 
 				const thumbnails = root.querySelector('#thumbnails')
-
-				if (thumbnailWrapper && message.scrollPos) {
-					setScrollPos(thumbnailWrapper, message.scrollPos)
-				}
-
-				setInterval(() => {
-					postScrollPos(thumbnailWrapper)
-				}, 300)
 
 				if (message.canvasColor) {
 					canvasColor = message.canvasColor
@@ -254,13 +273,12 @@
 	})
 </script>
 
-<div class="wrapper" bind:this={root} style="background-color: {canvasColor}">
+<div class="wrapper" bind:this={root}>
 	<div
 		id="actionbar"
 		bind:this={actionbar}
 		class="p-xxsmall flex"
 		style="justify-content: space-between;">
-
 		<button
 			id="lock"
 			style="color: {oppositeColor}; --hover-color: {hexToRgba(
@@ -1420,6 +1438,7 @@
 
 	html {
 		position: relative;
+		--border-color: var(--figma-color-border);
 		/* overflow-y: scroll; */
 	}
 
@@ -1454,7 +1473,7 @@
 
 	@media (max-height: 240px) {
 		#thumbnails > * {
-			height: 100vh;
+			height: calc(100vh + 1px);
 		}
 	}
 

@@ -1,9 +1,22 @@
 import { getClientStorageAsync, setClientStorageAsync } from '@figlets/helpers'
 
 // FIXME: When all sub children of a node are invisible export fails
-// TODO: Look for canvas color up the tree of frames
+// FIXME: Check if node exists (if has been deleted by user)
 
 console.clear()
+
+function nodeRemoved(node) {
+	// Check if the node is undefined or null
+	if (node) {
+		let nodeToCheck = figma.getNodeById(node.id)
+
+		if (nodeToCheck?.parent === null) {
+			return true
+		}
+	}
+
+	return false // The node is still part of the document
+}
 
 function componentToHex(c) {
 	c = Math.floor(c * 255)
@@ -139,6 +152,7 @@ function isChildrenVisible(node) {
 }
 async function generateThumbnail(node) {
 	var image
+
 	if (
 		node.children &&
 		node.children.length > 0 &&
@@ -146,6 +160,12 @@ async function generateThumbnail(node) {
 		isChildrenVisible(node)
 	) {
 		image = await node.exportAsync({
+			format: 'SVG',
+		})
+	} else {
+		var nearestIcon = getNearestIcon(figma.currentPage.selection[0])
+
+		image = await nearestIcon.exportAsync({
 			format: 'SVG',
 		})
 	}
@@ -176,13 +196,54 @@ async function getSelectedIconImage(node) {
 	}
 }
 
-function getCanvasColor() {
-	var hex = rgbToHex(figma.currentPage.backgrounds[0].color)
-	if (hex !== '#e5e5e5') {
-		return hex
-	} else {
-		return '#ffffff'
+function getParentFillOfSelectedNode(node): RGB {
+	// Ensure the node exists
+	if (!node) {
+		const background = figma.currentPage.backgrounds[0] as SolidPaint
+		return background.color // Fallback to canvas background if no node is provided
 	}
+
+	// // Check if the node's opacity is 0
+	// if ('opacity' in node && node.opacity === 0) {
+	// 	const parentNode = node.parent
+	// 	return parentNode
+	// 		? getParentFillOfSelectedNode(parentNode)
+	// 		: figma.currentPage.backgrounds[0].color
+	// }
+
+	// Get the parent node
+	const parentNode = node.parent
+
+	// If the parent node exists and has fills
+	if (parentNode && 'fills' in parentNode) {
+		const fills = parentNode.fills as Paint[]
+
+		// Check if fills exist and the first fill has a color
+		if (fills.length > 0 && 'color' in fills[0]) {
+			const fill = fills[0].color
+
+			if (fill) {
+				return fill // Return the fill color if defined
+			}
+		}
+	}
+
+	// If no valid fill is found, recurse to the next parent or return canvas background
+	if (parentNode) {
+		return getParentFillOfSelectedNode(parentNode)
+	} else {
+		// No parent left, fallback to the canvas background color
+		const background = figma.currentPage.backgrounds[0] as SolidPaint
+		return background.color
+	}
+}
+
+function getCanvasColor() {
+	try {
+		let hexColor = rgbToHex(getParentFillOfSelectedNode(currentIcon))
+
+		return hexColor
+	} catch {}
 }
 
 function isSquare(node) {
@@ -244,11 +305,12 @@ function setPreview(node) {
 			currentIconThumbnail: selectedImage,
 			thumbnails: thumbnailSettings,
 			selectedIconThumbnail: selectedImage,
+			canvasColor: getCanvasColor(),
 		})
 	})
 }
 
-function postIcon(scrollPos) {
+function postIcon() {
 	const selection = figma.currentPage.selection
 	const selectedItem = selection[0]
 	if (
@@ -271,7 +333,6 @@ function postIcon(scrollPos) {
 						currentIconThumbnail: currentImage,
 						selectedIconThumbnail: currentImage,
 						canvasColor: getCanvasColor(),
-						scrollPos,
 					})
 				})
 			},
@@ -336,12 +397,8 @@ async function main() {
 		width: 352,
 		height: 294,
 	}
-	var scrollPos = (await getClientStorageAsync('scrollPos')) || {
-		top: 0,
-		left: 0,
-	}
+
 	cachedUiSize = uiSize
-	cachedScrollPos = cachedUiSize
 
 	figma.showUI(__html__, { ...uiSize, themeColors: true })
 
@@ -352,11 +409,20 @@ async function main() {
 		})
 	}
 
-	postIcon(scrollPos)
+	postIcon()
 
-	triggerNotification()
+	// triggerNotification()
 
 	figma.on('selectionchange', () => {
+		if (nodeRemoved(currentIcon)) {
+			figma.ui.postMessage({
+				type: 'GET_ICON',
+				currentIconThumnail: undefined,
+				thumbnails: thumbnailSettings,
+				selectedIconThumbnail: undefined,
+			})
+			return
+		}
 		if (!cachedPreviewLocked) {
 			if (figma.currentPage.selection.length === 1) {
 				if (
@@ -407,11 +473,16 @@ async function main() {
 	})
 
 	function getIcon() {
-		if (
-			currentIcon &&
-			figma.getNodeById(currentIcon.id) &&
-			(figma.currentPage.selection.length === 1 || cachedPreviewLocked)
-		) {
+		if (nodeRemoved(currentIcon)) {
+			figma.ui.postMessage({
+				type: 'GET_ICON',
+				currentIconThumnail: undefined,
+				thumbnails: thumbnailSettings,
+				selectedIconThumbnail: undefined,
+			})
+			return
+		}
+		if (currentIcon && figma.getNodeById(currentIcon.id)) {
 			getCurrentIconImage(currentIcon).then((currentImage) => {
 				figma.ui.postMessage({
 					type: 'GET_ICON',
@@ -442,13 +513,12 @@ async function main() {
 
 export default function () {
 	main()
-	console.log(import.meta.env.MODE)
 
 	if (figma.command === 'previewIcon') {
 		main()
 	}
 
-	figma.ui.onmessage = (msg) => {
+	figma.ui.onmessage = async (msg) => {
 		if (msg.type === 'set-preview') {
 			if (figma.currentPage.selection.length === 0) {
 				setPreview(figma.currentPage.selection[0])
@@ -476,12 +546,22 @@ export default function () {
 		}
 
 		if (msg.type === 'scroll-position') {
-			cachedScrollPos = msg.pos
+			figma.clientStorage.setAsync('scrollPos', msg.pos)
+		}
+
+		if (msg.type === 'UI_LOADED') {
+			var scrollPos = (await getClientStorageAsync('scrollPos')) || {
+				top: 0,
+				left: 0,
+			}
+			figma.ui.postMessage({
+				type: 'POST_SAVED_SCROLL_POS',
+				pos: scrollPos,
+			})
 		}
 	}
 
 	figma.on('close', () => {
 		setClientStorageAsync('uiSize', cachedUiSize)
-		setClientStorageAsync('scrollPos', cachedScrollPos)
 	})
 }
