@@ -42,87 +42,6 @@ function hexToRgb(hex) {
 		: null
 }
 
-var thumbnailSettings = [
-	{
-		size: 16,
-		group: 'General',
-	},
-	{
-		size: 24,
-		group: 'General',
-	},
-	{
-		size: 32,
-		group: 'General',
-	},
-	{
-		size: 48,
-		group: 'General',
-	},
-	{
-		size: 64,
-		group: 'General',
-	},
-	{
-		size: 96,
-		group: 'General',
-	},
-	{
-		size: 128,
-		group: 'General',
-	},
-	{
-		size: 20,
-		group: 'iOS',
-		label: 'Notification',
-	},
-	{
-		size: 29,
-		group: 'iOS',
-		label: 'Settings',
-	},
-	{
-		size: 40,
-		group: 'iOS',
-		label: 'Spotlight',
-	},
-	{
-		size: 60,
-		group: 'iOS',
-		label: 'iPhone',
-	},
-	{
-		size: 76,
-		group: 'iOS',
-		label: 'iPad',
-	},
-	{
-		size: 83.5,
-		group: 'iOS',
-		label: 'iPad Pro',
-	},
-	{
-		size: 16,
-		group: 'Android',
-		label: 'Small Contextual',
-	},
-	{
-		size: 22,
-		group: 'Android',
-		label: 'Notification',
-	},
-	{
-		size: 24,
-		group: 'Android',
-		label: 'System',
-	},
-	{
-		size: 48,
-		group: 'Android',
-		label: 'Product',
-	},
-]
-
 function isBox(node) {
 	return (
 		node.type === 'FRAME' ||
@@ -303,7 +222,6 @@ function setPreview(node) {
 		figma.ui.postMessage({
 			type: 'GET_ICON',
 			currentIconThumbnail: selectedImage,
-			thumbnails: thumbnailSettings,
 			selectedIconThumbnail: selectedImage,
 			canvasColor: getCanvasColor(),
 		})
@@ -329,7 +247,6 @@ function postIcon() {
 					}
 					figma.ui.postMessage({
 						type: 'GET_ICON',
-						thumbnails: thumbnailSettings,
 						currentIconThumbnail: currentImage,
 						selectedIconThumbnail: currentImage,
 						canvasColor: getCanvasColor(),
@@ -414,7 +331,6 @@ async function main() {
 			figma.ui.postMessage({
 				type: 'GET_ICON',
 				currentIconThumnail: undefined,
-				thumbnails: thumbnailSettings,
 				selectedIconThumbnail: undefined,
 			})
 			return
@@ -456,12 +372,12 @@ async function main() {
 			} else {
 				cachedSelectedThumbnail = undefined
 				// getSelectedIconImage(selectedIcon).then((selectedImage) => {
-				figma.ui.postMessage({
-					type: 'GET_ICON',
-					selectedIconThumbnail: undefined,
-					currentIconThumbnail: undefined,
-					thumbnails: undefined,
-				})
+				// figma.ui.postMessage({
+				// 	type: 'GET_ICON',
+				// 	selectedIconThumbnail: undefined,
+				// 	currentIconThumbnail: undefined,
+				// 	thumbnails: undefined,
+				// })
 
 				// })
 			}
@@ -473,7 +389,6 @@ async function main() {
 			figma.ui.postMessage({
 				type: 'GET_ICON',
 				currentIconThumnail: undefined,
-				thumbnails: thumbnailSettings,
 				selectedIconThumbnail: undefined,
 			})
 			return
@@ -483,7 +398,6 @@ async function main() {
 				figma.ui.postMessage({
 					type: 'GET_ICON',
 					currentIconThumbnail: currentImage,
-					thumbnails: thumbnailSettings,
 					// selectedIconThumbnail: cachedSelectedThumbnail,
 					canvasColor: getCanvasColor(),
 					selectedIconThumbnail: currentImage,
@@ -493,7 +407,6 @@ async function main() {
 			figma.ui.postMessage({
 				type: 'GET_ICON',
 				currentIconThumnail: undefined,
-				thumbnails: thumbnailSettings,
 				canvasColor: getCanvasColor(),
 				selectedIconThumbnail: undefined,
 			})

@@ -18,6 +18,122 @@
 	let previewLocked = false
 	let lockButton
 
+	var thumbnailSettings = [
+		{
+			size: 16,
+			group: 'General',
+		},
+		{
+			size: 24,
+			group: 'General',
+		},
+		{
+			size: 32,
+			group: 'General',
+		},
+		{
+			size: 48,
+			group: 'General',
+		},
+		{
+			size: 64,
+			group: 'General',
+		},
+		{
+			size: 96,
+			group: 'General',
+		},
+		{
+			size: 128,
+			group: 'General',
+		},
+		{
+			size: 20,
+			group: 'iOS',
+			label: 'Notification',
+		},
+		{
+			size: 29,
+			group: 'iOS',
+			label: 'Settings',
+		},
+		{
+			size: 40,
+			group: 'iOS',
+			label: 'Spotlight',
+		},
+		{
+			size: 60,
+			group: 'iOS',
+			label: 'iPhone',
+		},
+		{
+			size: 76,
+			group: 'iOS',
+			label: 'iPad',
+		},
+		{
+			size: 83.5,
+			group: 'iOS',
+			label: 'iPad Pro',
+		},
+		{
+			size: 16,
+			group: 'Android',
+			label: 'Small Contextual',
+		},
+		{
+			size: 22,
+			group: 'Android',
+			label: 'Notification',
+		},
+		{
+			size: 24,
+			group: 'Android',
+			label: 'System',
+		},
+		{
+			size: 48,
+			group: 'Android',
+			label: 'Product',
+		},
+	]
+
+		var thumbnailSettings2 = [
+	{
+		name: "General",
+		icons: [
+		{ size: 16, group: "General" },
+		{ size: 24, group: "General" },
+		{ size: 32, group: "General" },
+		{ size: 48, group: "General" },
+		{ size: 64, group: "General" },
+		{ size: 96, group: "General" },
+		{ size: 128, group: "General" }
+		]
+	},
+	{
+		name: "iOS",
+		icons: [
+		{ size: 20, group: "iOS", label: "Notification" },
+		{ size: 29, group: "iOS", label: "Settings" },
+		{ size: 40, group: "iOS", label: "Spotlight" },
+		{ size: 60, group: "iOS", label: "iPhone" },
+		{ size: 76, group: "iOS", label: "iPad" },
+		{ size: 83.5, group: "iOS", label: "iPad Pro" }
+		]
+	},
+	{
+		name: "Android",
+		icons: [
+		{ size: 16, group: "Android", label: "Small Contextual" },
+		{ size: 22, group: "Android", label: "Notification" },
+		{ size: 24, group: "Android", label: "System" },
+		{ size: 48, group: "Android", label: "Product" }
+		]
+	}
+	]
+
 	function resize(node, event) {
 		function resizeWindow(event) {
 			const size = {
@@ -181,9 +297,6 @@
 			}
 
 			if (message.type === 'GET_ICON') {
-				// previewLocked = message.previewLocked
-
-				const thumbnails = root.querySelector('#thumbnails')
 
 				if (message.canvasColor) {
 					canvasColor = message.canvasColor
@@ -191,83 +304,26 @@
 					// root.style.backgroundColor = message.canvasColor
 				}
 
-				selectedIconThumbnail = message?.selectedIconThumbnail
+				if (!message || !message.currentIconThumbnail) return;
 
-				if (message) {
-					var canvas
-					if (message.currentIconThumbnail) {
-						canvas = createSvg(message.currentIconThumbnail)
+				const canvas = createSvg(message.currentIconThumbnail);
+				const svgContainers = document.querySelectorAll('.svg');
+
+				thumbnailSettings.forEach(({ size }, index) => {
+					const svgContainer = svgContainers[index];
+					if (!svgContainer) return;
+
+					if (message.currentIconThumbnail && canvas) {
+						const clone = canvas.cloneNode(true);
+						clone.style.width = size;
+						clone.style.height = size;
+
+						svgContainer.innerHTML = ''; // Clear existing content
+						svgContainer.appendChild(clone);
+					} else {
+						svgContainer.innerHTML = ''; // Ensure it's empty if no icon
 					}
-
-					if (message.thumbnails) {
-						for (let i = 0; i < message.thumbnails.length; i++) {
-							if (thumbnails.children[i]) {
-								let clone
-								if (
-									message.currentIconThumbnail &&
-									canvas &&
-									message.selectedIconThumbnail
-								) {
-									clone = canvas.cloneNode(true)
-									clone.style.width =
-										message.thumbnails[i].size
-									clone.style.height =
-										message.thumbnails[i].size
-									thumbnails.children[i].appendChild(clone)
-									thumbnails.children[
-										i
-									].children[0].parentNode.replaceChild(
-										clone,
-										thumbnails.children[i].children[0],
-									)
-								} else {
-									if (thumbnails.children[i].children[0]) {
-										thumbnails.children[
-											i
-										].children[0].style.display = 'none'
-									}
-								}
-
-								thumbnails.children[
-									i
-								].children[1].children[1].children[0].innerHTML =
-									message.thumbnails[i].size
-
-								if (message.thumbnails[i].group) {
-									if (i > 0) {
-										if (
-											message.thumbnails[i].group !==
-											message.thumbnails[i - 1].group
-										) {
-											thumbnails.children[
-												i
-											].children[1].children[0].innerHTML =
-												message.thumbnails[i].group
-											thumbnails.children[
-												i
-											].classList.add('first')
-										}
-									} else {
-										thumbnails.children[
-											i
-										].children[1].children[0].innerHTML =
-											message.thumbnails[i].group
-										thumbnails.children[i].classList.add(
-											'first',
-										)
-									}
-								}
-
-								if (message.thumbnails[i].label) {
-									thumbnails.children[
-										i
-									].children[1].children[1].children[1].innerHTML =
-										message.thumbnails[i].label
-								}
-							}
-						}
-					}
-				}
+				});
 			}
 		}
 	})
@@ -331,176 +387,26 @@
 					oppositeColor,
 					0.07,
 				)}; --group-color: {hexToRgba(oppositeColor, 0.8)}">
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
+				{#each thumbnailSettings2 as { name, icons }}
+				<div class="icon__group">
+				  <p class="group-name">{name}</p>
+				  <div class="icons">
+				  {#each icons as { size, group, label }}
+					<div class="icon">
+						<div class="icon-container">
+					  <div class="svg"></div>
+					</div>
+					  <div class="icon__info">
 						<div>
-							<p class="type--small" />
-							<p class="type--small" />
+						  <p class="icon__label__size">{size}px</p>
+						  <p class="icon__label__label">{label || ''}</p>
 						</div>
+					  </div>
+					</div>
+				  {/each}
 					</div>
 				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
-				<div>
-					<div />
-					<div class="icon__info">
-						<p class="type--small" />
-						<div>
-							<p class="type--small" />
-							<p class="type--small" />
-						</div>
-					</div>
-				</div>
+			  {/each}
 			</div>
 		</div>
 	</div>
@@ -543,705 +449,11 @@
 		</div> -->
 
 <style global>
-	:global body,
-	:global html {
-		background-color: var(--figma-color-bg);
-	}
 
-	:global(*) {
-		box-sizing: border-box;
-	}
-
-	#corner {
-		/* display: none; */
-		position: absolute;
-		right: 0px;
-		bottom: 1px;
-		cursor: nwse-resize;
-		/* background-color: pink; */
-	}
-	:global(body):hover #corner {
-		display: block;
-	}
-
-	.show {
-		display: block;
-	}
-
-	.hide {
-		display: none;
-	}
-
-	#thumbnail {
-		margin-right: 8px;
-		/* margin-left: -8px; */
-	}
-
-	#thumbnail canvas {
-		width: 16px !important;
-		height: 16px !important;
-	}
-
-	.wrapper {
-		display: flex;
-		flex-direction: column;
-		margin-right: -1px;
-		margin-bottom: -1px;
-		overflow: hidden;
-	}
-
-	:global(*) {
-		box-sizing: border-box;
-	}
-	:global(html) {
-		/* background-color: var(--figma-color-bg); */
-		height: 100%;
-		/* overflow: hidden; */
+	html {
 		position: relative;
-	}
-	:global(body) {
-		padding: 0;
-		margin: 0;
-		font-family: Inter, sans-serif;
-		font-size: 11px;
-		color: var(--black);
-		/* height: 100%; */
-		position: absolute;
-		top: 0;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		overflow: hidden;
-		box-shadow:
-			0 0px 14px rgba(0, 0, 0, 0.15),
-			0 0 0 0.5px rgba(0, 0, 0, 0.1);
-		border-bottom-left-radius: 2px;
-		border-bottom-right-radius: 2px;
-	}
-	.wrapper {
-		/* padding: 16px; */
-		height: 100%;
-		/* overflow: scroll; */
-	}
-	.preview-window {
-		/* flex-grow: 1; */
-		overflow-y: scroll;
-
-		/* scroll-snap-type: y mandatory; */
-	}
-
-	.thumbnail-wrapper {
-		/* overflow: hidden; */
-	}
-
-	#thumbnails {
-		/* display: flex; */
-		flex-wrap: wrap;
-	}
-
-	#thumbnails > * {
-		scroll-snap-align: start;
-	}
-
-	/* Vars */
-	:root {
-		/* COLORS */
-		/* Accent */
-		--blue: #18a0fb;
-		--purple: #7b61ff;
-		--hot-pink: #ff00ff;
-		--green: #1bc47d;
-		--red: #f24822;
-		--yellow: #ffeb00;
-		/* Basic foreground */
-		--black: #000000;
-		--black8: rgba(0, 0, 0, 0.8);
-		--black8-opaque: #333333;
-		--black3: rgba(0, 0, 0, 0.3);
-		--black3-opaque: #b3b3b3;
-		--white: #ffffff;
-		--white8: rgba(255, 255, 255, 0.8);
-		--white4: rgba(255, 255, 255, 0.4);
-		/* Basic background */
-		--grey: #f0f0f0;
-		--silver: #e5e5e5;
-		--hud: #222222;
-		--toolbar: #2c2c2c;
-		/* Special */
-		--black1: rgba(0, 0, 0, 0.1);
-		--blue3: rgba(24, 145, 251, 0.3);
-		--purple4: rgba(123, 97, 255, 0.4);
-		--hover-fill: rgba(0, 0, 0, 0.06);
-		--selection-a: #daebf7;
-		--selection-b: #edf5fa;
-		--white2: rgba(255, 255, 255, 0.2);
-		/* TYPOGRAPHY */
-		/* Pos = positive applications (black on white) */
-		/* Neg = negative applications (white on black) */
-		/* Font stack */
-		--font-stack: 'Inter', sans-serif;
-		/* Font sizes */
-		--font-size-xsmall: 11px;
-		--font-size-small: 12px;
-		--font-size-large: 13px;
-		--font-size-xlarge: 14px;
-		/* Font weights */
-		--font-weight-normal: 400;
-		--font-weight-medium: 500;
-		--font-weight-bold: 600;
-		/* Lineheight */
-		--font-line-height: 16px;
-		/* Use For xsmall, small font sizes */
-		--font-line-height-large: 24px;
-		/* Use For large, xlarge font sizes */
-		/* Letterspacing */
-		--font-letter-spacing-pos-xsmall: 0.005em;
-		--font-letter-spacing-neg-xsmall: 0.01em;
-		--font-letter-spacing-pos-small: 0;
-		--font-letter-spacing-neg-small: 0.005em;
-		--font-letter-spacing-pos-large: -0.0025em;
-		--font-letter-spacing-neg-large: 0.0025em;
-		--font-letter-spacing-pos-xlarge: -0.001em;
-		--font-letter-spacing-neg-xlarge: -0.001em;
-		/* BORDER RADIUS */
-		--border-radius-small: 2px;
-		--border-radius-med: 5px;
-		--border-radius-large: 6px;
-		/* SHADOWS */
-		--shadow-hud: 0 5px 17px rgba(0, 0, 0, 0.2),
-			0 2px 7px rgba(0, 0, 0, 0.15);
-		--shadow-floating-window: 0 2px 14px rgba(0, 0, 0, 0.15);
-		/* SPACING + SIZING */
-		--size-xxxsmall: 4px;
-		--size-xxsmall: 8px;
-		--size-xsmall: 16px;
-		--size-small: 24px;
-		--size-medium: 32px;
-		--size-large: 40px;
-		--size-xlarge: 48px;
-		--size-xxlarge: 64px;
-		--size-xxxlarge: 80px;
-	}
-
-	/* Global styles */
-	* {
-		box-sizing: border-box;
-	}
-
-	body {
-		position: relative;
-		box-sizing: border-box;
-		font-family: 'Inter', sans-serif;
-		margin: 0;
-		padding: 0;
-	}
-
-	/* UTILITIES */
-	/* padding */
-	.p-xxxsmall {
-		padding: var(--size-xxxsmall);
-	}
-
-	.p-xxsmall {
-		padding: var(--size-xxsmall);
-	}
-
-	.p-xsmall {
-		padding: var(--size-xsmall);
-	}
-
-	.p-small {
-		padding: var(--size-small);
-	}
-
-	.p-medium {
-		padding: var(--size-medium);
-	}
-
-	.p-large {
-		padding: var(--size-large);
-	}
-
-	.p-xlarge {
-		padding: var(--size-xlarge);
-	}
-
-	.p-xxlarge {
-		padding: var(--size-xxlarge);
-	}
-
-	.p-huge {
-		padding: var(--size-xxxlarge);
-	}
-
-	/* padding top */
-	.pt-xxxsmall {
-		padding-top: var(--size-xxxsmall);
-	}
-
-	.pt-xxsmall {
-		padding-top: var(--size-xxsmall);
-	}
-
-	.pt-xsmall {
-		padding-top: var(--size-xsmall);
-	}
-
-	.pt-small {
-		padding-top: var(--size-small);
-	}
-
-	.pt-medium {
-		padding-top: var(--size-medium);
-	}
-
-	.pt-large {
-		padding-top: var(--size-large);
-	}
-
-	.pt-xlarge {
-		padding-top: var(--size-xlarge);
-	}
-
-	.pt-xxlarge {
-		padding-top: var(--size-xxlarge);
-	}
-
-	.pt-huge {
-		padding-top: var(--size-xxxlarge);
-	}
-
-	/* padding right */
-	.pr-xxxsmall {
-		padding-right: var(--size-xxxsmall);
-	}
-
-	.pr-xxsmall {
-		padding-right: var(--size-xxsmall);
-	}
-
-	.pr-xsmall {
-		padding-right: var(--size-xsmall);
-	}
-
-	.pr-small {
-		padding-right: var(--size-small);
-	}
-
-	.pr-medium {
-		padding-right: var(--size-medium);
-	}
-
-	.pr-large {
-		padding-right: var(--size-large);
-	}
-
-	.pr-xlarge {
-		padding-right: var(--size-xlarge);
-	}
-
-	.pr-xxlarge {
-		padding-right: var(--size-xxlarge);
-	}
-
-	.pr-huge {
-		padding-right: var(--size-xxxlarge);
-	}
-
-	/* padding bottom */
-	.pb-xxxsmall {
-		padding-bottom: var(--size-xxxsmall);
-	}
-
-	.pb-xxsmall {
-		padding-bottom: var(--size-xxsmall);
-	}
-
-	.pb-xsmall {
-		padding-bottom: var(--size-xsmall);
-	}
-
-	.pb-small {
-		padding-bottom: var(--size-small);
-	}
-
-	.pb-medium {
-		padding-bottom: var(--size-medium);
-	}
-
-	.pb-large {
-		padding-bottom: var(--size-large);
-	}
-
-	.pb-xlarge {
-		padding-bottom: var(--size-xlarge);
-	}
-
-	.pb-xxlarge {
-		padding-bottom: var(--size-xxlarge);
-	}
-
-	.pb-huge {
-		padding-bottom: var(--size-xxxlarge);
-	}
-
-	/* padding left */
-	.pl-xxxsmall {
-		padding-left: var(--size-xxxsmall);
-	}
-
-	.pl-xxsmall {
-		padding-left: var(--size-xxsmall);
-	}
-
-	.pl-xsmall {
-		padding-left: var(--size-xsmall);
-	}
-
-	.pl-small {
-		padding-left: var(--size-small);
-	}
-
-	.pl-medium {
-		padding-left: var(--size-medium);
-	}
-
-	.pl-large {
-		padding-left: var(--size-large);
-	}
-
-	.pl-xlarge {
-		padding-left: var(--size-xlarge);
-	}
-
-	.pl-xxlarge {
-		padding-left: var(--size-xxlarge);
-	}
-
-	.pl-huge {
-		padding-left: var(--size-xxxlarge);
-	}
-
-	/* margin */
-	.m-xxxsmall {
-		margin: var(--size-xxxsmall);
-	}
-
-	.m-xxsmall {
-		margin: var(--size-xxsmall);
-	}
-
-	.m-xsmall {
-		margin: var(--size-xsmall);
-	}
-
-	.m-small {
-		margin: var(--size-small);
-	}
-
-	.m-medium {
-		margin: var(--size-medium);
-	}
-
-	.m-large {
-		margin: var(--size-large);
-	}
-
-	.m-xlarge {
-		margin: var(--size-xlarge);
-	}
-
-	.m-xxlarge {
-		margin: var(--size-xxlarge);
-	}
-
-	.m-huge {
-		margin: var(--size-xxxlarge);
-	}
-
-	/* margin top */
-	.mt-xxxsmall {
-		margin-top: var(--size-xxxsmall);
-	}
-
-	.mt-xxsmall {
-		margin-top: var(--size-xxsmall);
-	}
-
-	.mt-xsmall {
-		margin-top: var(--size-xsmall);
-	}
-
-	.mt-small {
-		margin-top: var(--size-small);
-	}
-
-	.mt-medium {
-		margin-top: var(--size-medium);
-	}
-
-	.mt-large {
-		margin-top: var(--size-large);
-	}
-
-	.mt-xlarge {
-		margin-top: var(--size-xlarge);
-	}
-
-	.mt-xxlarge {
-		margin-top: var(--size-xxlarge);
-	}
-
-	.mt-huge {
-		margin-top: var(--size-xxxlarge);
-	}
-
-	/* margin right */
-	.mr-xxxsmall {
-		margin-right: var(--size-xxxsmall);
-	}
-
-	.mr-xxsmall {
-		margin-right: var(--size-xxsmall);
-	}
-
-	.mr-xsmall {
-		margin-right: var(--size-xsmall);
-	}
-
-	.mr-small {
-		margin-right: var(--size-small);
-	}
-
-	.mr-medium {
-		margin-right: var(--size-medium);
-	}
-
-	.mr-large {
-		margin-right: var(--size-large);
-	}
-
-	.mr-xlarge {
-		margin-right: var(--size-xlarge);
-	}
-
-	.mr-xxlarge {
-		margin-right: var(--size-xxlarge);
-	}
-
-	.mr-huge {
-		margin-right: var(--size-xxxlarge);
-	}
-
-	/* margin bottom */
-	.mb-xxxsmall {
-		margin-bottom: var(--size-xxxsmall);
-	}
-
-	.mb-xxsmall {
-		margin-bottom: var(--size-xxsmall);
-	}
-
-	.mb-xsmall {
-		margin-bottom: var(--size-xsmall);
-	}
-
-	.mb-small {
-		margin-bottom: var(--size-small);
-	}
-
-	.mb-medium {
-		margin-bottom: var(--size-medium);
-	}
-
-	.mb-large {
-		margin-bottom: var(--size-large);
-	}
-
-	.mb-xlarge {
-		margin-bottom: var(--size-xlarge);
-	}
-
-	.mb-xxlarge {
-		margin-bottom: var(--size-xxlarge);
-	}
-
-	.mb-huge {
-		margin-bottom: var(--size-xxxlarge);
-	}
-
-	/* margin left */
-	.ml-xxxsmall {
-		margin-left: var(--size-xxxsmall);
-	}
-
-	.ml-xxsmall {
-		margin-left: var(--size-xxsmall);
-	}
-
-	.ml-xsmall {
-		margin-left: var(--size-xsmall);
-	}
-
-	.ml-small {
-		margin-left: var(--size-small);
-	}
-
-	.ml-medium {
-		margin-left: var(--size-medium);
-	}
-
-	.ml-large {
-		margin-left: var(--size-large);
-	}
-
-	.ml-xlarge {
-		margin-left: var(--size-xlarge);
-	}
-
-	.ml-xxlarge {
-		margin-left: var(--size-xxlarge);
-	}
-
-	.ml-huge {
-		margin-left: var(--size-xxxlarge);
-	}
-
-	/* layout utilities */
-	.hidden {
-		display: none;
-	}
-
-	.inline {
-		display: inline;
-	}
-
-	.block {
-		display: block;
-	}
-
-	.inline-block {
-		display: inline-block;
-	}
-
-	.flex {
-		display: flex;
-	}
-
-	.inline-flex {
-		display: inline-flex;
-	}
-
-	.column {
-		flex-direction: column;
-	}
-
-	.column-reverse {
-		flex-direction: column-reverse;
-	}
-
-	.row {
-		flex-direction: row;
-	}
-
-	.row-reverse {
-		flex-direction: row-reverse;
-	}
-
-	.flex-wrap {
-		flex-wrap: wrap;
-	}
-
-	.flex-wrap-reverse {
-		flex-wrap: wrap-reverse;
-	}
-
-	.flex-no-wrap {
-		flex-wrap: nowrap;
-	}
-
-	.flex-shrink {
-		flex-shrink: 1;
-	}
-
-	.flex-no-shrink {
-		flex-shrink: 0;
-	}
-
-	.flex-grow {
-		flex-grow: 1;
-	}
-
-	.flex-no-grow {
-		flex-grow: 0;
-	}
-
-	.justify-content-start {
-		justify-content: flex-start;
-	}
-
-	.justify-content-end {
-		justify-content: flex-end;
-	}
-
-	.justify-content-center {
-		justify-content: center;
-	}
-
-	.justify-content-between {
-		justify-content: space-between;
-	}
-
-	.justify-content-around {
-		justify-content: space-around;
-	}
-
-	.align-items-start {
-		align-items: flex-start;
-	}
-
-	.align-items-end {
-		align-items: flex-end;
-	}
-
-	.align-items-center {
-		align-items: center;
-	}
-
-	.align-items-stretch {
-		align-items: stretch;
-	}
-
-	.align-content-start {
-		align-content: flex-start;
-	}
-
-	.align-content-end {
-		align-content: flex-end;
-	}
-
-	.align-content-center {
-		align-content: center;
-	}
-
-	.align-content-stretch {
-		align-content: stretch;
-	}
-
-	.align-self-start {
-		align-self: flex-start;
-	}
-
-	.align-self-end {
-		align-items: flex-end;
-	}
-
-	.align-self-center {
-		align-self: center;
-	}
-
-	.align-self-stretch {
-		align-self: stretch;
+		--border-color: var(--figma-color-border);
+		/* overflow-y: scroll; */
 	}
 
 	.button {
@@ -1266,309 +478,81 @@
 		user-select: none;
 	}
 
-	.button--primary {
-		background-color: var(--blue);
-	}
-
-	.button--primary:enabled:active,
-	.button--primary:enabled:focus {
-		border: 2px solid var(--black3);
-	}
-
-	.button--primary:disabled {
-		background-color: var(--black3);
-	}
-
-	.button--primary-destructive {
-		background-color: var(--red);
-	}
-
-	.button--primary-destructive:enabled:active,
-	.button--primary-destructive:enabled:focus {
-		border: 2px solid var(--black3);
-	}
-
-	.button--primary-destructive:disabled {
-		opacity: 0.3;
-	}
-
-	.button--secondary,
-	.button--secondary-destructive {
-		background-color: var(--white);
-		border: 1px solid var(--black8);
-		color: var(--black8);
-		padding: 0 calc(var(--size-xsmall) + 1px) 0
-			calc(var(--size-xsmall) + 1px);
-		letter-spacing: var(--font-letter-spacing-pos-small);
-	}
-
-	.button--secondary:enabled:active,
-	.button--secondary-destructive:enabled:active,
-	.button--secondary-destructive:enabled:focus {
-		border: 2px solid var(--blue);
-		padding: 0 var(--size-xsmall) 0 var(--size-xsmall);
-	}
-
-	.button--secondary:disabled,
-	.button--secondary-destructive:disabled {
-		border: 1px solid var(--black3);
-		color: var(--black3);
-	}
-
-	.button--secondary-destructive {
-		border-color: var(--red);
-		color: var(--red);
-	}
-
-	.button--secondary-destructive:disabled {
-		background-color: var(--white);
-	}
-
-	.button--secondary-destructive:enabled:active,
-	.button--secondary-destructive:enabled:focus {
-		border: 2px solid var(--red);
-		padding: 0 var(--size-xsmall) 0 var(--size-xsmall);
-	}
-
-	.button--secondary-destructive:disabled {
-		border: 1px solid var(--red);
-		background-color: var(--white);
-		color: var(--red);
-		opacity: 0.4;
-	}
-
-	.button--tertiary,
-	.button--tertiary-destructive {
-		border: 1px solid transparent;
-		color: var(--blue);
-		padding: 0;
-		font-weight: var(--font-weight-normal);
-		letter-spacing: var(--font-letter-spacing-pos-small);
-		cursor: pointer;
-	}
-
-	.button--tertiary:enabled:focus,
-	.button--tertiary-destructive:enabled:focus {
-		text-decoration: underline;
-	}
-
-	.button--tertiary:disabled,
-	.button--tertiary-destructive:disabled {
-		cursor: default;
-		color: var(--black3);
-	}
-
-	.button--tertiary-destructive {
-		color: var(--red);
-	}
-
-	.button--tertiary-destructive:enabled:focus {
-		text-decoration: underline;
-	}
-
-	.button--tertiary-destructive:disabled {
-		opacity: 0.4;
-	}
-
-	.type {
-		font-family: var(--font-stack);
-		font-size: var(--font-size-xsmall);
-		font-weight: var(--font-weight-normal);
-		line-height: var(--font-line-height);
-		letter-spacing: var(--font-letter-spacing-pos-xsmall);
-		/* sizes */
-		/* weights */
-		/* letter spacing adjustments based pos/neg application */
-	}
-
-	.type--small {
-		font-size: var(--font-size-small);
-		letter-spacing: var(--font-letter-spacing-pos-small);
-	}
-
-	.type--large {
-		font-size: var(--font-size-large);
-		line-height: var(--font-line-height-large);
-		letter-spacing: var(--font-letter-spacing-pos-large);
-	}
-
-	.type--xlarge {
-		font-size: var(--font-size-xlarge);
-		line-height: var(--font-line-height-large);
-		letter-spacing: var(--font-letter-spacing-pos-xlarge);
-	}
-
-	.type--medium {
-		font-weight: var(--font-weight-medium);
-	}
-
-	.type--bold {
-		font-weight: var(--font-weight-bold);
-	}
-
-	.type--inverse {
-		letter-spacing: var(--font-letter-spacing-neg-xsmall);
-	}
-
-	.type--inverse + .type--small {
-		letter-spacing: var(--font-letter-spacing-neg-small);
-	}
-
-	.type--inverse + .type--large {
-		letter-spacing: var(--font-letter-spacing-neg-large);
-	}
-
-	.type--inverse + .type--xlarge {
-		letter-spacing: var(--font-letter-spacing-neg-xlarge);
-	}
-
-	.type--inline {
-		display: inline-block;
-	}
-
-	.wrapper {
-		/* overflow: hidden; */
-	}
-
-	/* CUSTOM CSS */
-
-	:root {
-		--icon-width: 128px;
-	}
-
-	html {
-		position: relative;
-		--border-color: var(--figma-color-border);
-		/* overflow-y: scroll; */
-	}
-
-	#thumbnails {
-		/* margin-bottom: -1px; */
-		/* margin-right: -1px; */
-		/* overflow-y: scroll; */
-		/* overflow-x: hidden; */
-		/* display: flex; */
-	}
-
-	#thumbnails > * {
-		border-bottom: 1px solid var(--border-color);
-		border-right: 1px solid var(--border-color);
-		box-sizing: border-box;
-		flex-grow: 0;
-		/* min-height: 152px; */
-		height: 50vh;
-		display: grid;
-		place-items: center;
-		position: relative;
-		float: left;
-		width: 100%;
-	}
-
-	.preview-window {
-		scroll-snap-type: y mandatory;
-	}
-
-	@media (max-width: 319px) {
-	}
-
-	@media (max-height: 240px) {
-		#thumbnails > * {
-			height: calc(100vh + 1px);
-		}
-	}
-
-	@media (min-width: 280px) {
-		#thumbnails > * {
-			width: calc(100% / 2);
-		}
-	}
-
-	@media (min-width: 520px) {
-		#thumbnails > * {
-			width: calc(100% / 3);
-		}
-	}
-
-	@media (min-height: 480px) {
-		#thumbnails > * {
-			height: 33.33333vh;
-		}
-	}
-
-	@media (min-width: 740px) {
-		#thumbnails > * {
-			width: calc(100% / 4);
-		}
-	}
-
-	@media (min-height: 740px) {
-		#thumbnails > * {
-			height: 25vh;
-		}
-	}
-
-	/* @media (min-width: 920px) {
-		#thumbnails>* {
-			width: calc(100% / 5);
-		}
-
-	} */
-
-	@media (min-width: 1100px) {
-		#thumbnails > * {
-			width: calc(100% / 5);
-		}
-	}
-
-	@media (min-width: 1580px) {
-		#thumbnails > * {
-			width: calc(100% / 7);
-		}
-	}
 
 	#actionbar {
 		position: fixed;
-		top: 0;
-		width: 100%;
-		min-height: 49px;
-		user-select: none;
-		pointer-events: none;
-		z-index: 999;
-		/* border-top: 1px solid #e5e5e5; */
-		/* background-color: white; */
+		top: 12px;
+		right: 12px;
 	}
-
-	#toolbar {
+	#corner {
 		/* display: none; */
 		position: fixed;
-		bottom: 0;
-		width: 100%;
-		min-height: 49px;
-		user-select: none;
-		pointer-events: none;
-		/* border-top: 1px solid #e5e5e5; */
-		/* background-color: white; */
+		right: 0px;
+		bottom: 1px;
+		cursor: nwse-resize;
+		/* background-color: pink; */
 	}
 
-	#inspect:enabled:active,
-	#inspect:enabled:focus {
-		border: 2px solid var(--blue);
+
+
+	/* layout utilities */
+	.hidden {
+		display: none;
 	}
 
-	#thumbnails {
-		position: relative;
+	.group-name {
+		padding: 12px;
+		margin: 0;
+		position: sticky;
+		top: 0;
+	}
+
+	.icon__group {
+
+	}
+
+	.icons {
+		border-top: 1px solid var(--border-color);
+	}
+
+	.icons {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+		justify-content: center;
+		align-items: stretch; /* Ensures all items are the same height */
+	}
+
+	.icons > * {
+		border-bottom: 1px solid var(--border-color);
+		border-right: 1px solid var(--border-color);
+		min-height: calc(((100vh - 37px) / 3));
+	}
+
+	.icon {
+		padding: 12px;
+		display: flex;
+		flex-direction: column;
+		display: flex;
+	}
+
+	.icon__label__size {
+
+	}
+
+	.svg {
+		align-self: center;
+	}
+
+	.icon-container {
+		flex-grow: 1;
+		align-content: center;
+		align-self: center;
 	}
 
 	.icon__info {
-		position: absolute;
-		top: 12px;
-		left: 12px;
-		bottom: 12px;
-		right: 12px;
-		user-select: none;
+		position: relative;
 	}
 
-	/* TODO: needs work */
 	.icon__info > :nth-child(1) {
 		top: 12px;
 		/* color: var(--black); */
@@ -1600,42 +584,6 @@
 		margin-top: 0;
 	}
 
-	.black3 {
-		color: var(--black3);
-	}
-
-	.selectIcon {
-		height: calc(100% - 48px);
-		display: none;
-		place-items: center;
-	}
-
-	.previewButton {
-		padding: 8px;
-		width: 88px;
-		margin-left: auto;
-		display: none;
-		justify-content: center;
-		pointer-events: auto;
-	}
-
-	.lockButton {
-		padding: 8px;
-		width: 32px;
-		margin-left: auto;
-		justify-content: center;
-		pointer-events: auto;
-		background-color: transparent;
-		border-radius: 2px;
-	}
-
-	.lockButton:hover {
-		background-color: var(--hover-color);
-	}
-
-	.first {
-		/* clear: left; */
-	}
 
 	.show {
 		display: flex;
