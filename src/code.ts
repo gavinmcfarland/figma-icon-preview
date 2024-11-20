@@ -387,8 +387,6 @@ function triggerNotification() {
 selectedIcon = figma.currentPage.selection[0]
 
 var cachedSelectedThumbnail
-var cachedScrollPos
-var cachedUiSize
 var cachedPreviewLocked
 
 // restore previous size
@@ -397,8 +395,6 @@ async function main() {
 		width: 352,
 		height: 294,
 	}
-
-	cachedUiSize = uiSize
 
 	figma.showUI(__html__, { ...uiSize, themeColors: true })
 
@@ -542,7 +538,7 @@ export default function () {
 
 		if (msg.type === 'resize') {
 			figma.ui.resize(msg.size.width, msg.size.height)
-			cachedUiSize = msg.size
+			figma.clientStorage.setAsync('uiSize', msg.size)
 		}
 
 		if (msg.type === 'scroll-position') {
@@ -560,8 +556,4 @@ export default function () {
 			})
 		}
 	}
-
-	figma.on('close', () => {
-		setClientStorageAsync('uiSize', cachedUiSize)
-	})
 }
