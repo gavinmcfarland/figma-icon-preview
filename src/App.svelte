@@ -4,10 +4,9 @@
 	import "./reset.css";
 
 	export const name: string = "";
-	let root;
+
 	let toolbar;
 	let actionbar;
-	let message;
 	let canvas2;
 	let thumbnail;
 	let preview;
@@ -194,9 +193,10 @@
 		document.body.style.backgroundColor = canvasColor;
 	}
 
-	onMount(() => {
-		const root = document.documentElement;
+	const root = document.documentElement;
+	root.style.setProperty("display", "none");
 
+	onMount(() => {
 		if (previewWindow) {
 			setInterval(() => {
 				postScrollPos(previewWindow);
@@ -213,14 +213,16 @@
 		);
 
 		window.onmessage = async (event) => {
-			message = await event.data.pluginMessage;
+			let message = event.data.pluginMessage;
 
 			if (message.type === "POST_SAVED_SCROLL_POS") {
 				// Using timeout to avoid issue when toolbar present in dev mode
+				// NOTE: Display the html when scroll pos received
+				root.style.setProperty("display", "block");
 				let scrollPos = message.pos;
-				setTimeout(() => {
-					setScrollPos(previewWindow, scrollPos);
-				}, 10);
+				// setTimeout(() => {
+				setScrollPos(previewWindow, scrollPos);
+				// }, 1);
 			}
 
 			if (message.type === "GET_ICON") {
@@ -277,7 +279,7 @@
 	});
 </script>
 
-<div class="wrapper" bind:this={root}>
+<div class="wrapper">
 	<div
 		id="actionbar"
 		bind:this={actionbar}
@@ -375,6 +377,24 @@
 		height="16"
 		viewBox="0 0 16 16"
 		fill="none"
+		opacity="0.2"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<path
+			fill-rule="evenodd"
+			clip-rule="evenodd"
+			d="M12.9452 4.9984C13.0058 4.44945 12.5523 4 12 4V4C11.4477 4 11.0075 4.45028 10.9295 4.99703C10.492 8.06512 8.06512 10.492 4.99703 10.9295C4.45028 11.0075 4 11.4477 4 12V12C4 12.5523 4.44945 13.0058 4.9984 12.9452C9.1713 12.4847 12.4847 9.1713 12.9452 4.9984Z"
+			fill={oppositeColor}
+		/>
+	</svg>
+
+	<!-- <svg
+		id="corner"
+		use:resize
+		width="16"
+		height="16"
+		viewBox="0 0 16 16"
+		fill="none"
 		xmlns="http://www.w3.org/2000/svg"
 	>
 		<path
@@ -395,7 +415,7 @@
 			stroke-opacity="0.24"
 			stroke-linecap="round"
 		/>
-	</svg>
+	</svg> -->
 </div>
 
 <!-- <div id="selectIcon" class="selectIcon">
@@ -439,6 +459,7 @@
 		top: 8px;
 		right: 8px;
 	}
+
 	#corner {
 		/* display: none; */
 		position: fixed;
@@ -446,6 +467,15 @@
 		bottom: 1px;
 		cursor: nwse-resize;
 		/* background-color: pink; */
+		display: none;
+	}
+
+	#corner:hover {
+		opacity: 0.3;
+	}
+
+	html:hover #corner {
+		display: block;
 	}
 
 	/* layout utilities */

@@ -350,7 +350,17 @@ async function main() {
 		height: 294,
 	};
 
+	var scrollPos = (await getClientStorageAsync("scrollPos")) || {
+		top: 0,
+		left: 0,
+	};
+
 	figma.showUI(__html__, { ...uiSize, themeColors: true });
+
+	figma.ui.postMessage({
+		type: "POST_SAVED_SCROLL_POS",
+		pos: scrollPos,
+	});
 
 	setCurrentIcon();
 	if (currentIcon) {
@@ -431,7 +441,11 @@ async function main() {
 			return;
 		}
 
-		if (currentIcon && figma.getNodeById(currentIcon.id)) {
+		if (
+			currentIcon &&
+			figma.getNodeById(currentIcon.id) &&
+			isIcon(currentIcon)
+		) {
 			getCurrentIconImage(currentIcon).then((currentImage) => {
 				figma.ui.postMessage({
 					type: "GET_ICON",
@@ -494,17 +508,6 @@ export default function () {
 
 		if (msg.type === "scroll-position") {
 			figma.clientStorage.setAsync("scrollPos", msg.pos);
-		}
-
-		if (msg.type === "UI_LOADED") {
-			var scrollPos = (await getClientStorageAsync("scrollPos")) || {
-				top: 0,
-				left: 0,
-			};
-			figma.ui.postMessage({
-				type: "POST_SAVED_SCROLL_POS",
-				pos: scrollPos,
-			});
 		}
 	};
 }
