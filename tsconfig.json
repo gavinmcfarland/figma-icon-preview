@@ -1,12 +1,13 @@
 {
-	"include": ["src/**/*"],
-	"exclude": ["src/app"],
+    "include": ["src/**/*"],
+    "exclude": ["src/app"],
 
-	"compilerOptions": {
-		"target": "es2017",
-		"typeRoots": ["./node_modules/@types", "./node_modules/@figma"],
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"allowSyntheticDefaultImports": true
-	}
+    "compilerOptions": {
+        "target": "es2017",
+        "typeRoots": ["./node_modules/@types", "./node_modules/@figma"],
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "verbatimModuleSyntax": true
+    }
 }
