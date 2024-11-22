@@ -2,6 +2,7 @@ import { getClientStorageAsync, setClientStorageAsync } from "@figlets/helpers";
 
 // FIXME: When all sub children of a node are invisible export fails
 // FIXME: Check if node exists (if has been deleted by user)
+// FIXME: Select nearestIcon as currentIcon when shape inside icon selected and user first opens plugin
 
 console.clear();
 
@@ -118,11 +119,15 @@ async function generateThumbnail(node) {
 		}
 	} else {
 		if (!areChildrenEmptyOrHidden(node)) {
-			var nearestIcon = getNearestIcon(figma.currentPage.selection[0]);
+			if (figma.currentPage.selection.length === 1) {
+				var nearestIcon = getNearestIcon(
+					figma.currentPage.selection[0]
+				);
 
-			image = await nearestIcon.exportAsync({
-				format: "SVG",
-			});
+				image = await nearestIcon.exportAsync({
+					format: "SVG",
+				});
+			}
 		}
 	}
 
@@ -132,6 +137,18 @@ async function generateThumbnail(node) {
 async function getCurrentIconImage(node) {
 	// currentIconThumbnail
 	return await generateThumbnail(node);
+}
+
+function isInsideIcon(node) {
+	if (isIcon(node)) {
+		return node;
+	} else {
+		if (node) {
+			if (node.parent && getNearestIcon(node.parent)) {
+				return true;
+			}
+		}
+	}
 }
 
 function getNearestIcon(node) {
@@ -446,9 +463,10 @@ async function main() {
 		}
 
 		if (
-			currentIcon &&
-			figma.getNodeById(currentIcon.id) &&
-			isIcon(currentIcon)
+			(currentIcon &&
+				figma.getNodeById(currentIcon.id) &&
+				isIcon(currentIcon)) ||
+			getNearestIcon(currentIcon)
 		) {
 			getCurrentIconImage(currentIcon).then((currentImage) => {
 				figma.ui.postMessage({
@@ -493,8 +511,8 @@ async function main() {
 	}
 
 	// Use it with `getIcon`
-	const throttledGetIcon = throttle(getIcon, 375);
-	setInterval(throttledGetIcon, 100);
+	const throttledGetIcon = throttle(getIcon, 500);
+	setInterval(throttledGetIcon, 200);
 }
 
 export default function () {
