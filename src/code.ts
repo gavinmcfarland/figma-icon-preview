@@ -6,6 +6,8 @@ import { getClientStorageAsync, setClientStorageAsync } from "@figlets/helpers";
 
 console.clear();
 
+let scrollPos;
+
 function nodeRemoved(node) {
 	// Check if the node is undefined or null
 	if (node) {
@@ -367,7 +369,7 @@ async function main() {
 		height: 200,
 	};
 
-	var scrollPos = (await getClientStorageAsync("scrollPos")) || {
+	scrollPos = (await getClientStorageAsync("scrollPos")) || {
 		top: 0,
 		left: 0,
 	};
@@ -377,11 +379,6 @@ async function main() {
 	if (figma.currentPage.selection.length !== 1) {
 		figma.notify("Select any square icon");
 	}
-
-	figma.ui.postMessage({
-		type: "POST_SAVED_SCROLL_POS",
-		pos: scrollPos,
-	});
 
 	setCurrentIcon();
 	if (currentIcon) {
@@ -551,6 +548,13 @@ export default function () {
 
 		if (msg.type === "scroll-position") {
 			figma.clientStorage.setAsync("scrollPos", msg.pos);
+		}
+
+		if (msg.type === "UI_LOADED") {
+			figma.ui.postMessage({
+				type: "POST_SAVED_SCROLL_POS",
+				pos: scrollPos,
+			});
 		}
 	};
 }
