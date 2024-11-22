@@ -1,25 +1,25 @@
 {
-  "private": true,
-  "version": "2.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "plugma dev",
-    "build": "plugma build",
-    "preview": "plugma preview",
-    "release": "plugma release"
-  },
-  "devDependencies": {
-    "@figlets/helpers": "*",
-    "@figma/plugin-typings": "^1.102.0",
-    "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "plugma": "^1.2.4",
-    "svelte": "^5.2.0"
-  },
-  "dependencies": {
-    "svelte-preprocess": "^6.0.3",
-    "typescript": "^5.6.3"
-  },
-  "plugma": {
-    "pluginVersion": "14"
-  }
+    "private": true,
+    "version": "2.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "plugma dev",
+        "build": "plugma build",
+        "preview": "plugma preview",
+        "release": "plugma release"
+    },
+    "devDependencies": {
+        "@figlets/helpers": "*",
+        "@figma/plugin-typings": "^1.102.0",
+        "@sveltejs/vite-plugin-svelte": "^4.0.0",
+        "plugma": "^1.2.4",
+        "svelte": "^5.2.0"
+    },
+    "dependencies": {
+        "svelte-preprocess": "^6.0.3",
+        "typescript": "^5.6.3"
+    },
+    "plugma": {
+        "pluginVersion": "13"
+    }
 }
