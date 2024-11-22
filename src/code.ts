@@ -13,6 +13,10 @@ function nodeRemoved(node) {
 	if (node) {
 		let nodeToCheck = figma.getNodeById(node.id);
 
+		if (nodeToCheck === null) {
+			return true;
+		}
+
 		if (nodeToCheck?.parent === null) {
 			return true;
 		}
@@ -393,12 +397,12 @@ async function main() {
 
 	figma.on("selectionchange", () => {
 		if (nodeRemoved(currentIcon)) {
+			console.log("node removed");
 			figma.ui.postMessage({
 				type: "GET_ICON",
 				currentIconThumnail: undefined,
 				selectedIconThumbnail: undefined,
 			});
-			return;
 		}
 		if (!cachedPreviewLocked) {
 			if (figma.currentPage.selection.length === 1) {
