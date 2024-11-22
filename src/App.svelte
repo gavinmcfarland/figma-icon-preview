@@ -156,6 +156,13 @@
 		element.scrollLeft = pos.left;
 	}
 
+	function focusWindow() {
+		// Check if the browser supports the focus method and focus the window
+		if (window && typeof window.focus === "function") {
+			window.focus();
+		}
+	}
+
 	function hexToRgba(hex, opacity?) {
 		if (hex) {
 			var c;
@@ -349,7 +356,10 @@
 							{#each icons as { size, group, label }}
 								<div class="icon" style="--icon-size: {size}px">
 									<div class="icon-container">
-										<div class="svg"></div>
+										<div
+											class="svg"
+											style="pointer-events: none;"
+										></div>
 									</div>
 									<div class="icon__info">
 										<div>
@@ -460,6 +470,14 @@
 		right: 8px;
 	}
 
+	#app {
+		overflow: hidden;
+	}
+
+	.preview-window {
+		margin-bottom: -1px;
+	}
+
 	#corner {
 		/* display: none; */
 		position: fixed;
@@ -546,7 +564,7 @@
 			);
 		border-bottom: 1px solid var(--border-color);
 		border-right: 1px solid var(--border-color);
-		height: calc(100vh + 1px);
+		height: 100vh;
 		scroll-snap-align: start;
 	}
 

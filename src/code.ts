@@ -346,8 +346,8 @@ var cachedPreviewLocked;
 // restore previous size
 async function main() {
 	var uiSize = (await getClientStorageAsync("uiSize")) || {
-		width: 352,
-		height: 294,
+		width: 200,
+		height: 200,
 	};
 
 	var scrollPos = (await getClientStorageAsync("scrollPos")) || {
@@ -356,6 +356,10 @@ async function main() {
 	};
 
 	figma.showUI(__html__, { ...uiSize, themeColors: true });
+
+	if (figma.currentPage.selection.length !== 1) {
+		figma.notify("Select any square icon");
+	}
 
 	figma.ui.postMessage({
 		type: "POST_SAVED_SCROLL_POS",
@@ -467,9 +471,30 @@ async function main() {
 
 	getIcon();
 
-	setInterval(() => {
-		getIcon();
-	}, 375);
+	function throttle(func, limit) {
+		let lastFunc;
+		let lastRan;
+		return function () {
+			const context = this;
+			const args = arguments;
+			if (!lastRan) {
+				func.apply(context, args);
+				lastRan = Date.now();
+			} else {
+				clearTimeout(lastFunc);
+				lastFunc = setTimeout(function () {
+					if (Date.now() - lastRan >= limit) {
+						func.apply(context, args);
+						lastRan = Date.now();
+					}
+				}, limit - (Date.now() - lastRan));
+			}
+		};
+	}
+
+	// Use it with `getIcon`
+	const throttledGetIcon = throttle(getIcon, 375);
+	setInterval(throttledGetIcon, 100);
 }
 
 export default function () {
